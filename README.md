@@ -13,6 +13,51 @@ random generator to build:
 - A HIIT block (EMOM / AMRAP / For-Time patterns)
 - Smart Warm-up and Cool-down matched to the muscles actually used in the Lift + HIIT
 
+## Mac Dock Shortcut (Automator app)
+
+Make WODSpark feel like a native app: one click launches the server, opens the browser, and closes the server when you quit the window.
+
+### What I did (super simple)
+
+1) **Create the launcher script** (in your project root):
+   - `WODSpark.command` (executable): starts Vite (`dev` or `preview`) and opens a Chrome app window, then shuts down on close.
+   - If you used the version that prints a URL (`WODSparkForShortcuts.command`), that works too.
+
+2) **Automator → New → Application**
+   - Action: **Run Shell Script**
+      - **Shell:** `zsh`
+      - **Input:** `Input`
+      - **Pass input:** `to stdin`
+      - **Script:**
+        ```zsh
+        sh /Users/<you>/dev/repos/crossfit-wod-generator/WODSpark.command
+        ```
+        *(Use the full path to your script. Add `dev 5173` or `preview 5173` args if you want to force a mode/port.)*
+
+   - Action: **Open** → **Shell Script Result**
+     *(This opens the URL the script prints, if you use the “prints URL” variant. If your script already launches the Chrome app window, this step is optional.)*
+
+3) **Save** as `WODSpark.app` and **drag it to the Dock**.
+
+> First run: macOS may block the script. Fix once:
+> ```bash
+> chmod +x /path/to/WODSpark*.command
+> ```
+
+### Tips
+
+- **Preview vs Dev**
+   - `./WODSpark.command preview 5173` → serves the last build (`npm run build` first).
+   - `./WODSpark.command dev 5173` → hot-reload dev server.
+
+- **Chrome app window**
+  The script launches Chrome with a temporary profile and waits (`open -W`) so closing that window auto-stops the server.
+
+- **Change browser**
+  Replace "Google Chrome" with "Brave Browser" or "Microsoft Edge" in the script. Safari can’t cleanly signal a single-window close.
+
+- **Logs**
+  Check `/tmp/wodspark.log` if something doesn’t open.
 
 Quick start
 -----------
