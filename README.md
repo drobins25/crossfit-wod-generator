@@ -1,5 +1,5 @@
 
-WODSpark — Local v6.1
+WODSpark — Crossfit WOD Generator
 =====================
 
 A tiny React + Vite app that generates CrossFit-style WODs **without any AI**.
