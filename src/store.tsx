@@ -48,44 +48,58 @@ export function BoardProvider({children}: { children: React.ReactNode }) {
     const soreSet = useMemo(() => new Set(soreSel), [soreSel])
     const key = `${date}|${split}|${workout}|${Array.from(equipSet).join(',')}|${Array.from(soreSet).join(',')}`
 
-    function generateAll() {
-        const minutesLift = Math.round(workout * split);
-        const minutesHiit = workout - minutesLift
-        const L = generateLift({key: key + '|L|', minutes: minutesLift, sore: soreSet, equipment: equipSet})
-        const H = generateHiit({key: key + '|H|', minutes: minutesHiit, equipment: equipSet})
-        const P = buildPrep({lift: L, hiit: H})
-        setLift(L);
-        setHiit(H);
-        setWarm(P.warmup);
-        setCool(P.cooldown);
-        setPrimary(P.primary)
-    }
-
-    function regenLift() {
-        if (!hiit) return generateAll()
+    function generateAll(){
         const minutesLift = Math.round(workout * split)
-        const L = generateLift({
-            key: key + '|L|' + Math.random(),
-            minutes: minutesLift,
-            sore: soreSet,
-            equipment: equipSet
-        })
-        setLift(L)
-        const P = buildPrep({lift: L, hiit: hiit!})
-        setWarm(P.warmup);
-        setCool(P.cooldown);
-        setPrimary(P.primary)
+        const minutesHiit = Math.max(0, workout - minutesLift)
+
+        const L = minutesLift > 0
+            ? generateLift({ key:key+'|L|', minutes: minutesLift, sore: soreSet, equipment: equipSet })
+            : null
+
+        const H = minutesHiit > 0
+            ? generateHiit({ key:key+'|H|', minutes: minutesHiit, equipment: equipSet })
+            : null
+
+        // Build warmup/cooldown using whatever exists
+        let P
+        if (L && H) {
+            P = buildPrep({ lift: L, hiit: H })
+        } else if (L) {
+            // hiit stub: no groups
+            P = buildPrep({ lift: L, hiit: { format:'', minutes:0, blocks:[], groups: new Set<MuscleGroup>() } })
+        } else if (H) {
+            // lift stub: no strain (lets prep fall back to HIIT groups)
+            P = buildPrep({
+                lift: { focus:'core', move:'', scheme:'', minutes:0, difficulty:2, groups: new Set<MuscleGroup>(), strained: new Set<MuscleGroup>() },
+                hiit: H
+            })
+        } else {
+            P = { warmup: null, cooldown: null, primary: new Set<MuscleGroup>() }
+        }
+
+        setLift(L); setHiit(H)
+        setWarm(P.warmup); setCool(P.cooldown); setPrimary(P.primary)
     }
 
-    function regenHiit() {
-        if (!lift) return generateAll()
-        const minutesHiit = workout - Math.round(workout * split)
-        const H = generateHiit({key: key + '|H|' + Math.random(), minutes: minutesHiit, equipment: equipSet})
+    function regenLift(){
+        const minutesLift = Math.round(workout * split)
+        if (minutesLift <= 0) { setLift(null); generateAll(); return }
+        const L = generateLift({ key:key+'|L|'+Math.random(), minutes: minutesLift, sore: soreSet, equipment: equipSet })
+        setLift(L)
+        const hiitStub = { format:'', minutes:0, blocks:[], groups:new Set<MuscleGroup>() }
+        const P = hiit ? buildPrep({ lift:L, hiit }) : buildPrep({ lift:L, hiit: hiitStub })
+        setWarm(P.warmup); setCool(P.cooldown); setPrimary(P.primary)
+    }
+
+
+    function regenHiit(){
+        const minutesHiit = Math.max(0, workout - Math.round(workout * split))
+        if (minutesHiit <= 0) { setHiit(null); generateAll(); return }
+        const H = generateHiit({ key:key+'|H|'+Math.random(), minutes: minutesHiit, equipment: equipSet })
         setHiit(H)
-        const P = buildPrep({lift: lift!, hiit: H})
-        setWarm(P.warmup);
-        setCool(P.cooldown);
-        setPrimary(P.primary)
+        const liftStub = { focus: 'core' as MuscleGroup, move:'', scheme:'', minutes:0, difficulty:2, groups:new Set<MuscleGroup>(), strained:new Set<MuscleGroup>() }
+        const P = lift ? buildPrep({ lift, hiit:H }) : buildPrep({ lift: liftStub, hiit:H })
+        setWarm(P.warmup); setCool(P.cooldown); setPrimary(P.primary)
     }
 
     const value: Ctx = {

@@ -23,8 +23,16 @@ export default function Board(){
           <div className="split-wrap">
             <label className="medium">Split Time: </label>
             <span className="medium">Lift {liftPct}%</span>
-            <input type="range" min="0.3" max="0.9" step="0.01" value={split}
-                   onChange={e => setSplit(Number(e.target.value))}/>
+            <input
+                type="range"
+                min="0"             // was 0.3
+                max="1"             // was 0.9
+                step="0.01"
+                value={split}
+                onChange={e => setSplit(Number(e.target.value))}
+            />
+            {/*<input type="range" min="0.3" max="0.9" step="0.01" value={split}*/}
+            {/*       onChange={e => setSplit(Number(e.target.value))}/>*/}
             <span className="medium">HIIT {hiitPct}%</span>
           </div>
           <button className="btn ghost" onClick={() => exportBoardToPng(boardRef.current!, 'wod.png')}>Export WOD
@@ -40,7 +48,7 @@ export default function Board(){
               <div className="marker head blue">Lift {lift ? `(${lift.minutes} min)` : ''}
                 <button className="btn ghost" onClick={regenLift}>↻</button>
               </div>
-              {!lift ? <div className="marker line">—</div> : (
+              {!lift ? <div className="marker line">No lift today, eh?</div> : (
                   <>
                     <div className="marker scheme">{lift.scheme}</div>
                     <div className="marker move">{lift.move}</div>
@@ -52,7 +60,7 @@ export default function Board(){
               <div className="marker head red">HIIT {hiit ? `(${hiit.minutes} min)` : ''}
                 <button className="btn ghost" onClick={regenHiit}>↻</button>
               </div>
-              {!hiit ? <div className="marker line">—</div> : (
+              {!hiit ? <div className="marker line">No HIIT workout today, eh?</div> : (
                   <>
                     <div className="marker scheme">{hiit.format}</div>
                     {hiit.blocks.map((b, i) => (<div key={i} className="marker line">• {b}</div>))}
