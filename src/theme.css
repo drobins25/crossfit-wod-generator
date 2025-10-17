@@ -48,6 +48,7 @@ label{font-size:12px;color:var(--muted)}
 
 .board{background:var(--panel);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);padding:20px}
 .board .marker{font-family:'Permanent Marker',cursive}
+.marker{font-family:'Permanent Marker',cursive}
 .board .title{font-size:38px}
 .columns{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:8px}
 .line{font-size:18px;margin:6px 0}
@@ -58,8 +59,95 @@ label{font-size:12px;color:var(--muted)}
 /* Scheme styling */
 .scheme{font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; text-decoration: underline; font-size: 18px; margin: 4px 0 2px 0; opacity:.95}
 .move{font-size:22px}
-.header-tools{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.header-tools {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr; /* left spacer | centered slider | right button */
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+@media (max-width: 520px){
+  .header-tools {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr; /* left spacer | centered slider | right button */
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+}
+.header-tools .export {
+  justify-self: end; /* push button to the right edge */
+}
+@media (max-width: 520px){
+  .header-tools {
+    grid-template-columns: 1fr; /* stack */
+    justify-items: center;
+  }
+  .header-tools .export { justify-self: center; margin-top: 8px; }
+}
 .split-wrap{display:flex;gap:10px;align-items:center}
+
+/* Gradient split slider: blue (Lift) → red (HIIT) */
+.split-range {
+  width: 260px;
+  appearance: none;
+  height: 10px;
+  border-radius: 999px;
+  background: linear-gradient(
+          90deg,
+          var(--blue) 0%,
+          var(--blue) var(--pct, 50%),
+          var(--red) var(--pct, 50%),
+          var(--red) 100%
+  );
+  outline: none;
+  border: 1px solid var(--border);
+  box-shadow: inset 0 1px 2px rgba(0,0,0,.12);
+}
+
+/* WebKit (Chrome, Edge, Safari) */
+.split-range::-webkit-slider-runnable-track {
+  height: 10px;
+  border-radius: 999px;
+  background: linear-gradient(
+          90deg,
+          var(--blue) 0%,
+          var(--blue) var(--pct, 50%),
+          var(--red) var(--pct, 50%),
+          var(--red) 100%
+  );
+}
+.split-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid var(--text);
+  margin-top: -4px; /* centers thumb on 10px track */
+  box-shadow: 0 1px 3px rgba(0,0,0,.25);
+}
+
+/* Firefox */
+.split-range::-moz-range-track {
+  height: 10px;
+  border-radius: 999px;
+  background: linear-gradient(
+          90deg,
+          var(--blue) 0%,
+          var(--blue) var(--pct, 50%),
+          var(--red) var(--pct, 50%),
+          var(--red) 100%
+  );
+  border: 1px solid var(--border);
+}
+.split-range::-moz-range-thumb {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid var(--text);
+  box-shadow: 0 1px 3px rgba(0,0,0,.25);
+}
+
 
 /* Prep sections (Warm-up / Cool-down) side-by-side */
 .prepGrid{

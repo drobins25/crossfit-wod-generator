@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef } from 'react'
+type CSSVars = React.CSSProperties & { ['--pct']?: string }
 import { useBoard } from './store'
 import { pickQuoteForGroups } from './whiteboard/quotes'
 import { exportBoardToPng } from './whiteboard/exportBoard'
@@ -12,7 +13,11 @@ export default function Board(){
   }, [key])
   const quote = pickQuoteForGroups(rng, primary || new Set())
   const boardRef = useRef<HTMLDivElement>(null)
-  const liftPct = Math.round(split*100); const hiitPct = 100 - liftPct
+  // const liftPct = Math.round(split*100);
+
+  const liftPct = Math.round(split * 100)
+  const hiitPct = 100 - liftPct
+  const sliderStyle: CSSVars = { ['--pct']: `${liftPct}%` }
 
   // Auto-generate when split changes
   useEffect(()=>{ generateAll() }, [split])
@@ -20,22 +25,31 @@ export default function Board(){
   return (
       <div className="panel" style={{padding: 16}}>
         <div className="header-tools">
-          <div className="split-wrap">
-            <label className="medium">Split Time: </label>
-            <span className="medium">Lift {liftPct}%</span>
+          {/* left spacer (empty) */}
+          <div/>
+
+          {/* centered slider block */}
+          <div style={{display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6}}>
+            <div className="marker" aria-label="Workout split">
+              <span className="marker line blue">Lift {lift ? `(${lift.minutes} min)` : ''}</span>
+              {' ~ '}
+              <span className="red">HIIT {hiit ? `(${hiit.minutes} min)` : ''}</span>
+            </div>
             <input
                 type="range"
-                min="0"             // was 0.3
-                max="1"             // was 0.9
+                min="0"
+                max="1"
                 step="0.01"
                 value={split}
                 onChange={e => setSplit(Number(e.target.value))}
+                className="split-range"
+                style={sliderStyle /* or your gradient 'background' style */}
             />
-            {/*<input type="range" min="0.3" max="0.9" step="0.01" value={split}*/}
-            {/*       onChange={e => setSplit(Number(e.target.value))}/>*/}
-            <span className="medium">HIIT {hiitPct}%</span>
           </div>
-          <button className="btn ghost" onClick={() => exportBoardToPng(boardRef.current!, 'wod.png')}>Export WOD
+
+          {/* right-aligned button */}
+          <button className="btn ghost export" onClick={() => exportBoardToPng(boardRef.current!, 'wod.png')}>
+            Export WOD
           </button>
         </div>
         <div className="board" ref={boardRef}>
@@ -45,24 +59,26 @@ export default function Board(){
           </div>
           <div className="columns">
             <div>
-              <div className="marker head blue">Lift {lift ? `(${lift.minutes} min)` : ''}
+              <div className="marker head blue">Lift {lift ? `(${lift.minutes} min) ` : ''}
                 <button className="btn ghost" onClick={regenLift}>↻</button>
               </div>
               {!lift ? <div className="marker line">No lift today, eh?</div> : (
                   <>
-                    <div className="marker scheme">{lift.scheme}</div>
-                    <div className="marker move">{lift.move}</div>
+                    <div className="marker line">{lift.scheme}</div>
+                    <div className="marker line">
+                      • {lift.move}
+                    </div>
                     <div className="line" style={{fontSize: 14, opacity: .75}}>Focus: {lift.focus}</div>
                   </>
               )}
             </div>
             <div>
-              <div className="marker head red">HIIT {hiit ? `(${hiit.minutes} min)` : ''}
+              <div className="marker head red">HIIT {hiit ? `(${hiit.minutes} min) ` : ''}
                 <button className="btn ghost" onClick={regenHiit}>↻</button>
               </div>
               {!hiit ? <div className="marker line">No HIIT workout today, eh?</div> : (
                   <>
-                    <div className="marker scheme">{hiit.format}</div>
+                    <div className="marker line">{hiit.format}</div>
                     {hiit.blocks.map((b, i) => (<div key={i} className="marker line">• {b}</div>))}
                   </>
               )}
