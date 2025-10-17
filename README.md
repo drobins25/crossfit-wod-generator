@@ -1,4 +1,7 @@
 
+<img width="2186" height="1656" alt="image" src="https://github.com/user-attachments/assets/38b6f13d-39bf-41e9-8bd9-bce3d3719bc0" />
+
+
 WODSpark — Crossfit WOD Generator
 =====================
 
