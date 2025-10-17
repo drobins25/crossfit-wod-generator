@@ -3,6 +3,7 @@ type CSSVars = React.CSSProperties & { ['--pct']?: string }
 import { useBoard } from './store'
 import { pickQuoteForGroups } from './whiteboard/quotes'
 import { exportBoardToPng } from './whiteboard/exportBoard'
+import { MUSCLE_LABEL, type MuscleGroup } from './types/WodMovements'
 
 export default function Board(){
   const { date, split, setSplit, workout, lift, hiit, warm, cool, primary, regenLift, regenHiit, generateAll } = useBoard()
@@ -68,7 +69,7 @@ export default function Board(){
                     <div className="marker line">
                       • {lift.move}
                     </div>
-                    <div className="line" style={{fontSize: 14, opacity: .75}}>Focus: {lift.focus}</div>
+                    <div className="line" style={{fontSize: 14, opacity: .75}}>Focus: {MUSCLE_LABEL[lift.focus as MuscleGroup] ?? String(lift.focus)}</div>
                   </>
               )}
             </div>

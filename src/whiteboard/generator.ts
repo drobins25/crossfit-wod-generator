@@ -114,7 +114,7 @@ export function generateHiit({ key, minutes, equipment }:{ key:string, minutes:n
   const pool = wodLifts.hiitMovements.filter(m => hasEquipment(m, equipment))
   if (!pool.length) return { format:'AMRAP '+minutes+' min', minutes, blocks: [] as string[], groups: new Set<MuscleGroup>() }
 
-  const targetMoves = Math.min(5, Math.max(2, 1 + Math.floor(minutes/6)))
+  const targetMoves = minutes <= 5 ? 2 : 5
   const useEmom = rng()>0.5
 
   let chosen: Movement[]
@@ -130,10 +130,20 @@ export function generateHiit({ key, minutes, equipment }:{ key:string, minutes:n
     lines = chosen.map(m => `${m.name} — ${m.amrapSetReps ?? 10} reps`)
   } else {
     chosen = shuffle(rng, pool).slice(0, targetMoves)
-    const style = minutes >= 18 ? 'AMRAP 20 min' : (minutes >= 12 ? 'AMRAP 15 min' : 'AMRAP 10 min')
-    format = style
-    lines = chosen.map(m => `${m.name} x ${m.amrapSetReps ?? 12}`)
-    if (minutes >= 16 && rng()>0.6) format = buildForTimePattern(minutes)
+
+    // Decide the scheme first
+    const isForTime = minutes >= 16 && rng() > 0.6
+    if (isForTime) {
+      format = buildForTimePattern(minutes) // e.g., "For Time: 10-9-8-...-1"
+      // IMPORTANT: no per-movement reps on ladders
+      lines = chosen.map(m => m.name)
+    } else {
+      format = `AMRAP ${minutes} min`
+      // AMRAP may show a suggested per-movement rep target (optional)
+      lines = chosen.map(m =>
+          m.amrapSetReps && m.amrapSetReps > 1 ? `${m.name} x ${m.amrapSetReps}` : m.name
+      )
+    }
   }
 
   const groups = new Set<MuscleGroup>(chosen.flatMap(m => m.usedMuscleGroups||[]))
