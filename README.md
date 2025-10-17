@@ -13,9 +13,6 @@ random generator to build:
 - A HIIT block (EMOM / AMRAP / For-Time patterns)
 - Smart Warm-up and Cool-down matched to the muscles actually used in the Lift + HIIT
 
-This v6.1 patch **only** adds smarter warm-up/cool-down selection (no UI/visual changes
-from v6).
-
 
 Quick start
 -----------
@@ -32,19 +29,6 @@ Requirements
 
 No API keys or environment files are required.
 
-
-What’s new in v6.1
-------------------
-- **Smarter prep**: `generateLift()` now returns `groups: Set<MuscleGroup>`
-  representing all muscles actually used by the chosen lift. `buildPrep()` then
-  unions `lift.groups ∪ hiit.groups`, scores warmups/cooldowns by overlap, and
-  selects the best matches. Results: warm-ups and cool-downs align with what you
-  actually trained.
-
-- **No other changes** vs v6: UI, styling, controls, and generation rules remain
-  the same as the previous stable drop.
-
-
 Run scripts
 -----------
 - `npm run dev` – start Vite dev server (default on `http://localhost:5173`)
@@ -55,7 +39,7 @@ Run scripts
 Project structure
 -----------------
 ```
-wodspark-whiteboard-local-v6.1/
+crossfit-wod-generator/
 ├─ index.html
 ├─ package.json
 ├─ src/
