@@ -1,5 +1,5 @@
 
-<img width="2186" height="1656" alt="image" src="https://github.com/user-attachments/assets/38b6f13d-39bf-41e9-8bd9-bce3d3719bc0" />
+<img width="1084" height="825" alt="Screenshot 2025-10-17 at 2 59 47 PM" src="https://github.com/user-attachments/assets/67faf367-70d2-4c9b-837e-83cb37241f84" />
 
 
 WODSpark — Crossfit WOD Generator
@@ -16,6 +16,8 @@ random generator to build:
 ## Mac Dock Shortcut (Automator app)
 
 Make WODSpark feel like a native app: one click launches the server, opens the browser, and closes the server when you quit the window.
+
+<img width="869" height="654" alt="Screenshot 2025-10-17 at 2 48 44 PM" src="https://github.com/user-attachments/assets/5b099b67-e8ad-466f-8df6-4a3fc13bfa5b" />
 
 ### What I did (super simple)
 
@@ -43,6 +45,8 @@ Make WODSpark feel like a native app: one click launches the server, opens the b
 > ```bash
 > chmod +x /path/to/WODSpark*.command
 > ```
+
+- <img width="118" height="100" alt="Screenshot 2025-10-17 at 2 56 25 PM" src="https://github.com/user-attachments/assets/9a1d9d46-3ba0-47dd-88be-450e16826618" />
 
 ### Tips
 
