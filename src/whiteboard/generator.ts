@@ -31,7 +31,13 @@ export function generateLift({
       move: 'Bodyweight Squat',
       scheme: `Every 2:00 for ${Math.max(3, Math.floor(minutes/2))} sets: 15 reps`,
       minutes,
-      difficulty: 2
+      difficulty: 2,
+      strained: new Set<MuscleGroup>(
+          (['core']) as MuscleGroup[]
+      ),
+      groups: new Set<MuscleGroup>(
+          (['core']) as MuscleGroup[]
+      )
     }
   }
 
@@ -49,28 +55,53 @@ export function generateLift({
       move: 'Bodyweight Squat',
       scheme: `Every 2:00 for ${Math.max(3, Math.floor(minutes/2))} sets: 15 reps`,
       minutes,
-      difficulty: 2
+      difficulty: 2,
+      strained: new Set<MuscleGroup>(
+          (['core']) as MuscleGroup[]
+      ),
+      groups: new Set<MuscleGroup>(
+          (['core']) as MuscleGroup[]
+      )
     }
   }
 
-  const build = minutes >= 16 ? (rng() > 0.4) : (rng() > 0.6)
-  let scheme: string
+  // Full muscle sets from the chosen lift
+  const liftGroups = new Set<MuscleGroup>(
+      (chosen.usedMuscleGroups?.length
+          ? chosen.usedMuscleGroups
+          : (chosen.strainedMuscleGroups || ['core'])) as MuscleGroup[]
+  );
+
+  // NEW: keep strained groups separately to weight warmups/cooldowns
+  const strained = new Set<MuscleGroup>(
+      (chosen.strainedMuscleGroups || ['core']) as MuscleGroup[]
+  );
+
+  const build = minutes >= 16 ? (rng() > 0.4) : (rng() > 0.6);
+  let scheme: string;
   if (build) {
-    scheme = 'Build to a heavy 5-4-3-2-1'
+    scheme = 'Build to a heavy 5-4-3-2-1';
   } else {
-    const emom = minutes >= 10 && !!chosen.emomOk
+    const emom = minutes >= 10 && !!chosen.emomOk;
     if (emom) {
-      scheme = `EMOM ${minutes}: ${chosen.amrapSetReps ?? 5} reps`
+      scheme = `EMOM ${minutes}: ${chosen.amrapSetReps ?? 5} reps`;
     } else {
-      const sets = Math.max(3, Math.floor(minutes / 2))
-      const reps = chosen.amrapSetReps ?? 6
-      scheme = `Every 2:00 for ${sets} sets: ${reps} reps`
+      const sets = Math.max(3, Math.floor(minutes / 2));
+      const reps = chosen.amrapSetReps ?? 6;
+      scheme = `Every 2:00 for ${sets} sets: ${reps} reps`;
     }
   }
 
-  return { focus, move: chosen.name, scheme, minutes, difficulty: chosen.difficulty ?? 3 }
+  return {
+    focus,
+    move: chosen.name,
+    scheme,
+    minutes,
+    difficulty: chosen.difficulty ?? 3,
+    groups: liftGroups,      // used muscle groups
+    strained                 // NEW: strained groups (higher priority for prep)
+  }
 }
-
 
 function buildForTimePattern(minutes:number){
   if (minutes >= 18) return "For Time: 10-9-8-7-6-5-4-3-2-1"
@@ -109,15 +140,53 @@ export function generateHiit({ key, minutes, equipment }:{ key:string, minutes:n
   return { format, minutes, blocks: lines, groups }
 }
 
-export function buildPrep({ lift, hiit }:{ lift:{ focus:MuscleGroup, move:string, scheme:string, minutes:number, difficulty:number }, hiit:{ format:string, minutes:number, blocks:string[], groups:Set<MuscleGroup> } }){
-  const primary = new Set<MuscleGroup>([lift.focus])
-  hiit.groups.forEach(g => primary.add(g))
+export function buildPrep({
+                            lift,
+                            hiit
+                          }: {
+  // lift/hiit shapes should match your store typing
+  lift: {
+    focus: MuscleGroup;
+    move: string;
+    scheme: string;
+    minutes: number;
+    difficulty: number;
+    groups: Set<MuscleGroup>;
+    strained: Set<MuscleGroup>; // NEW
+  };
+  hiit: { format: string; minutes: number; blocks: string[]; groups: Set<MuscleGroup> };
+}) {
+  // If lift exists, prefer it exclusively, otherwise fall back to HIIT groups.
+  const primary = new Set<MuscleGroup>();
+  const weighted = new Map<MuscleGroup, number>();
 
-  const w = prepLibrary.warmups.filter(w => w.groups.some(g=>primary.has(g)))
-  const warm = (w.length? w.slice(0,3) : prepLibrary.warmups.slice(0,3)).map(x=>x.name)
+  if (lift) {
+    // Weight strained groups higher (2) and used groups lower (1)
+    lift.groups.forEach((g) => weighted.set(g, Math.max(weighted.get(g) || 0, 1)));
+    lift.strained.forEach((g) => weighted.set(g, Math.max(weighted.get(g) || 0, 2)));
+    // Build primary (for quotes, etc.) as union of both
+    lift.groups.forEach((g) => primary.add(g));
+    lift.strained.forEach((g) => primary.add(g));
+  } else {
+    // Rare fallback if lift is missing
+    hiit.groups.forEach((g) => {
+      primary.add(g);
+      weighted.set(g, 1);
+    });
+  }
 
-  const c = prepLibrary.cooldowns.filter(c => c.groups.some(g=>primary.has(g)))
-  const cool = (c.length? c.slice(0,2) : prepLibrary.cooldowns.slice(0,2)).map(x=>x.name)
+  const score = (gs: MuscleGroup[]) =>
+      gs.reduce((s, g) => s + (weighted.get(g) || 0), 0);
 
-  return { warmup: warm, cooldown: cool, primary }
+  const warm = [...prepLibrary.warmups]
+      .sort((a, b) => score(b.groups) - score(a.groups))
+      .slice(0, 3)
+      .map((x) => x.name);
+
+  const cool = [...prepLibrary.cooldowns]
+      .sort((a, b) => score(b.groups) - score(a.groups))
+      .slice(0, 2)
+      .map((x) => x.name);
+
+  return { warmup: warm, cooldown: cool, primary };
 }
