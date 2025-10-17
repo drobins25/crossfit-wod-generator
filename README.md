@@ -1,1 +1,139 @@
-# crossfit-wod-generator
+
+WODSpark — Local v6.1
+=====================
+
+A tiny React + Vite app that generates CrossFit-style WODs **without any AI**.
+It uses a curated movement dataset, equipment and soreness filters, and a seeded
+random generator to build:
+
+- A Lift block (minutes based on the split)
+- A HIIT block (EMOM / AMRAP / For-Time patterns)
+- Smart Warm-up and Cool-down matched to the muscles actually used in the Lift + HIIT
+
+This v6.1 patch **only** adds smarter warm-up/cool-down selection (no UI/visual changes
+from v6).
+
+
+Quick start
+-----------
+```bash
+npm install
+npm run dev
+# open http://localhost:5173
+```
+
+Requirements
+------------
+- Node.js 18+ recommended
+- npm 8+ recommended
+
+No API keys or environment files are required.
+
+
+What’s new in v6.1
+------------------
+- **Smarter prep**: `generateLift()` now returns `groups: Set<MuscleGroup>`
+  representing all muscles actually used by the chosen lift. `buildPrep()` then
+  unions `lift.groups ∪ hiit.groups`, scores warmups/cooldowns by overlap, and
+  selects the best matches. Results: warm-ups and cool-downs align with what you
+  actually trained.
+
+- **No other changes** vs v6: UI, styling, controls, and generation rules remain
+  the same as the previous stable drop.
+
+
+Run scripts
+-----------
+- `npm run dev` – start Vite dev server (default on `http://localhost:5173`)
+- `npm run build` – create a production build
+- `npm run preview` – preview the build locally
+
+
+Project structure
+-----------------
+```
+wodspark-whiteboard-local-v6.1/
+├─ index.html
+├─ package.json
+├─ src/
+│  ├─ App.tsx                 # Layout; top bar + two-column grid
+│  ├─ Board.tsx               # WOD whiteboard (title, quote, warm-up, Lift, HIIT, cool-down)
+│  ├─ Controls.tsx            # Session/date, total time, equipment & soreness selectors
+│  ├─ main.tsx                # Bootstraps React + theme.css
+│  ├─ store.tsx               # Global state; generation calls; preselect all equipment
+│  ├─ theme.css               # Light/dark theme and basic styling (v6 look)
+│  ├─ data/
+│  │  └─ wodLifts.ts         # Movement data + warmup/cooldown library
+│  ├─ types/
+│  │  └─ WodMovements.ts     # TS types (Equipment, MuscleGroup, Movement, etc.)
+│  └─ whiteboard/
+│     ├─ exportBoard.ts      # Export the WOD board as PNG
+│     ├─ generator.ts        # WOD generators (Lift/HIIT) + smarter buildPrep()
+│     └─ quotes.ts           # Longer motivational quotes (tagged by muscles)
+```
+
+
+How it generates a WOD
+----------------------
+1) **Lift minutes & HIIT minutes** are derived from the *Total workout time* and the *Split*
+   (slider in the WOD panel header).
+
+2) **Lift selection**
+    - Filters candidate lifts by your **selected equipment**.
+    - Chooses a **focus muscle** from each candidate’s `strainedMuscleGroups`, excluding
+      anything you checked under **What hurts**.
+    - Picks a matching lift for that focus, then decides one of:
+        - *Build to a heavy 5-4-3-2-1*
+        - *EMOM X: N reps* (if the lift supports EMOM and time is adequate)
+        - *Every 2:00 for S sets: R reps*
+
+    - **NEW v6.1**: The lift also returns a **full set of muscles used** (`groups`), preferring
+      `usedMuscleGroups` when present, otherwise falling back to `strainedMuscleGroups`.
+
+3) **HIIT selection**
+    - Filters HIIT pool by **equipment**.
+    - Chooses **2–5 movements** depending on HIIT minutes (2 movements only at 5 min).
+    - Randomly selects **EMOM** or **AMRAP** format (with a light “For Time” option when long).
+    - Computes a union of the chosen movements’ `usedMuscleGroups` as HIIT `groups`.
+
+4) **Warm-up & Cool-down (smarter)**
+    - `buildPrep()` creates `primary = lift.groups ∪ hiit.groups`
+    - Warm-ups and cool-downs are ranked by **overlap** with `primary` and the top entries are chosen.
+    - You’ll see prep that better matches the day’s actual training.
+
+5) **Quotes**
+    - Picks a longer motivational quote, optionally tagged to the primary muscle groups.
+
+
+Controls overview
+-----------------
+- **Date** – used in the seed for reproducible generation.
+- **Total workout time (20–60)** – excludes warm-up and cool-down.
+- **Split slider** – percent of time allocated to **Lift** / **HIIT**.
+- **Equipment** – preselected to **all equipment** by default. Uncheck to constrain WOD.
+- **What hurts (avoid in Lift)** – mark any sore areas to avoid picking a lift that strains them.
+- **Refresh buttons** on the whiteboard – independently regenerate **Lift** or **HIIT** with the current settings.
+
+
+Export
+------
+Click **Export WOD** to save the current board as a PNG (client-side capture via `html2canvas`).
+
+
+Troubleshooting
+---------------
+- **Blank page / console error about context**: Make sure components are wrapped in `<BoardProvider>`.
+- **No movements appear**: If you unselect all equipment, the app falls back to a minimal set, but you may get fewer choices.
+- **TypeScript errors**: Run `npm install` again to ensure `@types/react` and TS are installed.
+- **Vite dev server not accessible**: It defaults to `http://localhost:5173`. If the port conflicts, Vite will prompt an alternative in the terminal.
+
+Roadmap ideas
+-------------
+- Optional “General HIIT” mode biasing monostructural pieces (row/bike/run).
+- Per-movement difficulty tuning and round-time estimations.
+- Personal PR logging (commented stubs can be added if/when you want).
+
+
+License
+-------
+Do whatever you want, just don’t blame us for burpees.
