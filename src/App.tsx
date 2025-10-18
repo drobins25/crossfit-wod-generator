@@ -15,7 +15,7 @@ export default function App(){
   return (
     <div className="container">
       <div className="topbar">
-        <div className="brand"><h1>WODSpark</h1><span className="small">Local · v5</span></div>
+        <div className="brand"><h1>WODSpark</h1></div>
         <div className="switch">
           <label>Dark mode</label>
           <input type="checkbox" checked={dark} onChange={e=>setDark(e.target.checked)}/>
