@@ -46,6 +46,46 @@ label{font-size:12px;color:var(--muted)}
 .medium{font-size:16px;color:var(--muted)}
 .grid-check{display:grid;grid-template-columns:repeat(2,minmax(150px,1fr));gap:8px}
 
+/* 1) Make all form controls inherit the site font/colors */
+input, select, button, textarea {
+  font: inherit;
+  color: inherit;
+}
+
+/* 2) Your app's input style already—ensure the date uses it too */
+.input {
+  font: inherit;              /* key line */
+  line-height: 1.2;
+}
+
+/* 3) Chrome/Safari date parts: force consistent font sizing */
+/*input[type="date"]::-webkit-datetime-edit,*/
+input[type="date"]::-webkit-datetime-edit-text,
+input[type="date"]::-webkit-datetime-edit-month-field,
+input[type="date"]::-webkit-datetime-edit-day-field,
+input[type="date"]::-webkit-datetime-edit-year-field {
+  font: inherit;
+  color: inherit;
+}
+
+/* Optional: style the calendar icon to match theme */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0.75;
+  cursor: pointer;
+  /* If you have dark mode, this keeps it visible */
+  filter: invert(1);
+}
+
+/* Firefox tweaks */
+@supports (-moz-appearance: none) {
+  input[type="date"] {
+    -moz-appearance: textfield;
+    font: inherit;
+    color: inherit;
+  }
+}
+
+
 .board{background:var(--panel);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);padding:20px}
 .board .marker{font-family:'Permanent Marker',cursive}
 .marker{font-family:'Permanent Marker',cursive}
@@ -93,6 +133,7 @@ label{font-size:12px;color:var(--muted)}
   appearance: none;
   height: 10px;
   border-radius: 999px;
+  :root { --pct: .5; }
   background: linear-gradient(
           90deg,
           var(--blue) 0%,
@@ -208,4 +249,133 @@ label{font-size:12px;color:var(--muted)}
   100% { text-shadow:
           0 1px 0 rgba(0,0,0,.15),
           0 0 12px rgba(255,255,255,.12); }
+}
+
+/* Collapsible sections */
+.section.collapsible { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
+.section.collapsible + .section.collapsible { margin-top: 10px; }
+
+.section-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; cursor: pointer; user-select: none;
+}
+.section-title { font-size: 14px; font-weight: 600; }
+
+.section-actions { display: flex; align-items: center; gap: 10px; }
+.section-actions label { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; }
+.section-actions .mini { font-size: 12px; padding: 2px 8px; border-radius: 8px; }
+
+.chev { transition: transform .2s ease; font-size: 14px; opacity: .8; }
+.collapsed .chev { transform: rotate(-90deg); }
+
+.section-body {
+  overflow: hidden;
+  transition: grid-template-rows .25s ease, padding .25s ease;
+  display: grid; grid-template-rows: 1fr;
+}
+.collapsed .section-body { grid-template-rows: 0fr; padding-top: 0 !important; }
+.section-body > div { overflow: hidden; }
+
+.section-body.padded { padding-top: 10px; }
+
+/* Grid of checkboxes */
+.grid-check { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px 12px; }
+
+.btn.sm { padding: 6px 10px; font-size: 12px; border-radius: 10px; }
+
+.hint-btn {
+  all: unset;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid var(--text);
+  font-size: 10px;
+  line-height: 1;
+  opacity: .85;
+}
+.hint-btn:hover { opacity: 1; }
+.hint-btn.nudge { transform: translateY(1px); }
+.hint-wrap {
+  position: relative;          /* anchor for desktop/tablet */
+  display: inline-flex;
+  align-items: center;
+}
+/*.hint-dot{ display:inline-block; width:16px; height:16px; border-radius:50%;*/
+/*  border:1px solid var(--text); text-align:center; font-size:12px; }*/
+
+.section-title-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  line-height: 1.2;
+  white-space: nowrap; /* keeps "i" from wrapping */
+}
+.tooltip {
+  position: absolute;          /* desktop/tablet: anchor to icon */
+  z-index: 20;
+  left: 50%;
+  top: calc(100% + 6px);
+  transform: translateX(-50%);
+  max-width: min(320px, calc(100vw - 32px));
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--panel);
+  box-shadow: 0 6px 24px rgba(0,0,0,.2);
+  font-size: 12px;
+  line-height: 1.35;
+  word-wrap: break-word;
+}
+
+.tooltip:after {
+  content: "";
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%);
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 6px solid var(--panel);
+}
+
+/* Make sure header doesn't clip it */
+.section-head { overflow: visible; }
+
+/* Mobile: if space is tight, pin to bottom center instead of under text */
+@media (max-width: 520px) {
+  .tooltip {
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    bottom: 12px;
+    top: auto;
+    transform: none;       /* center via left/right instead */
+    max-width: none;
+  }
+  .tooltip:after { display: none; }
+}
+
+.note-italic {
+  font-size: 11px;      /* smaller than the title */
+  font-style: italic;
+  opacity: .75;         /* subtle */
+  /*margin-left: 2px;     !* breathing room from title *!*/
+}
+
+/* compact form sizing */
+.row-compact label { font-size: 12px; }
+.input-compact { font-size: 13px; padding: 6px 10px; }
+.row-compact .small { font-size: 11px; opacity: .8; }
+
+/* keep date parts consistent */
+/*.input-compact[type="date"]::-webkit-datetime-edit,*/
+.input-compact[type="date"]::-webkit-datetime-edit-text,
+.input-compact[type="date"]::-webkit-datetime-edit-month-field,
+.input-compact[type="date"]::-webkit-datetime-edit-day-field,
+.input-compact[type="date"]::-webkit-datetime-edit-year-field {
+  font-size: 13px;
 }
