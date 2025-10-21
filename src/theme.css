@@ -211,7 +211,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 
 .quote {
   display: inline-block;
-  font-size: 16px;
+  font-size: 19px;
   opacity: .9;
   margin: 4px 0 12px;
   padding: 2px 6px;
@@ -231,7 +231,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 /* When this class is present, the animations run */
 .quote.animate {
   animation:
-          quote-pop .7s ease-out forwards,
+          quote-pop 1.7s ease-out forwards,
           quote-glow 1.8s ease-out .25s forwards
 }
 
@@ -370,6 +370,13 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .row-compact label { font-size: 12px; }
 .input-compact { font-size: 13px; padding: 6px 10px; }
 .row-compact .small { font-size: 11px; opacity: .8; }
+
+.input-xxs {
+  width: 5.2ch;              /* fits 3 digits comfortably */
+  padding: 4px 8px;          /* smaller padding than input-compact */
+  font-size: 13px;           /* slightly smaller text */
+  /*text-align: right;         !* optional: align numbers nicely *!*/
+}
 
 /* keep date parts consistent */
 /*.input-compact[type="date"]::-webkit-datetime-edit,*/

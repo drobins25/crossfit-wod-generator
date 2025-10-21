@@ -1,7 +1,7 @@
 export type Equipment =
   | "barbell" | "plates" | "rack" | "kettlebell" | "dumbbell" | "bench"
   | "pullUpBar" | "gymnasticRings" | "wallTarget" | "medicineBall" | "jumpRope"
-  | "plyoBox" | "rower" | "skiErg" | "airBike" | "sandbag" | "sled"
+  | "plyoBox" | "rower" | "skiErg" | "airBike" | "sandbag" | "sled" | "resistanceBands"
 
 export const EQUIPMENT_LABEL: Record<Equipment,string> = {
   barbell: "Barbell",
@@ -20,7 +20,8 @@ export const EQUIPMENT_LABEL: Record<Equipment,string> = {
   skiErg: "Ski Machine",
   airBike: "Air Bike",
   sandbag: "Sandbag",
-  sled: "Sled"
+  sled: "Sled",
+  resistanceBands: "Resistance Bands"
 }
 
 export const ALL_EQUIPMENT: Equipment[] = Object.keys(EQUIPMENT_LABEL) as Equipment[]

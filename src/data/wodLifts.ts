@@ -139,7 +139,72 @@ export const wodLifts: WodLifts = {
     { id:"burpeeOverDb", name:"Burpee Over DB", equipment:["dumbbell"], movementPattern:["compound","bodyweight"], usedMuscleGroups:["legs","chest","shoulders","core"], emomOk:true, amrapSetReps:10, difficulty:4 },
     { id:"slamBall", name:"Slam Ball", equipment:["medicineBall"], movementPattern:["hinge","verticalPress"], usedMuscleGroups:["posteriorChain","shoulders","core"], emomOk:true, amrapSetReps:20, difficulty:3 },
     { id:"sledDrag", name:"Sled Drag (meters)", equipment:["sled"], movementPattern:["bodyweight"], usedMuscleGroups:["legs","glutes","core"], emomOk:true, amrapSetReps:50, difficulty:3 },
-    { id:"sandbagOverShoulder", name:"Sandbag Over Shoulder", equipment:["sandbag"], movementPattern:["hinge","pull"], usedMuscleGroups:["posteriorChain","back","core","glutes"], emomOk:true, amrapSetReps:10, difficulty:4 }
+    { id:"sandbagOverShoulder", name:"Sandbag Over Shoulder", equipment:["sandbag"], movementPattern:["hinge","pull"], usedMuscleGroups:["posteriorChain","back","core","glutes"], emomOk:true, amrapSetReps:10, difficulty:4 },
+    {
+      id: "bandPullApart",
+      name: "Band Pull-Apart",
+      equipment: ["resistanceBands"],
+      movementPattern: ["horizontalPull", "bodyweight"],
+      usedMuscleGroups: ["upperBack", "shoulders", "arms", "core"]
+    },
+    {
+      id: "bandFacePull",
+      name: "Band Face Pull",
+      equipment: ["resistanceBands"],
+      movementPattern: ["horizontalPull", "bodyweight"],
+      usedMuscleGroups: ["upperBack", "shoulders", "arms", "core"]
+    },
+    {
+      id: "bandGoodMorning",
+      name: "Band Good Morning",
+      equipment: ["resistanceBands"],
+      movementPattern: ["hinge", "hipDominant"],
+      strainedMuscleGroups: ["posteriorChain", "hamstrings"],
+      usedMuscleGroups: ["posteriorChain", "glutes", "hamstrings", "core"]
+    },
+    {
+      id: "bandRow",
+      name: "Band Row",
+      equipment: ["resistanceBands"],
+      movementPattern: ["horizontalPull"],
+      usedMuscleGroups: ["back", "arms", "core"]
+    },
+    {
+      id: "bandOverheadPress",
+      name: "Band Overhead Press",
+      equipment: ["resistanceBands"],
+      movementPattern: ["verticalPress", "overhead"],
+      strainedMuscleGroups: ["shoulders", "triceps"],
+      usedMuscleGroups: ["shoulders", "triceps", "upperBack", "core"]
+    },
+    {
+      id: "bandThruster",
+      name: "Band Thruster",
+      equipment: ["resistanceBands"],
+      movementPattern: ["frontSquatToPress", "compound"],
+      usedMuscleGroups: ["quadriceps", "glutes", "shoulders", "triceps", "core"]
+    },
+    {
+      id: "bandBicepsCurl",
+      name: "Band Biceps Curl",
+      equipment: ["resistanceBands"],
+      movementPattern: ["bodyweight"], // simple accessory pattern
+      usedMuscleGroups: ["arms", "shoulders", "core"]
+    },
+    {
+      id: "bandTricepsPushdown",
+      name: "Band Triceps Pushdown",
+      equipment: ["resistanceBands"],
+      movementPattern: ["verticalPress"], // accessory press path works within your set
+      usedMuscleGroups: ["triceps", "shoulders", "core"]
+    },
+    {
+      id: "bandMonsterWalk",
+      name: "Band Monster Walk",
+      equipment: ["resistanceBands"],
+      movementPattern: ["lunge", "unilateralAlternating", "bodyweight"], // locomotion + tension
+      usedMuscleGroups: ["glutes", "quadriceps", "adductors", "core"]
+    }
   ]
 }
 

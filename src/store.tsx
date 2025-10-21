@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useMemo, useState } from 'react'
-import { ALL_EQUIPMENT, type Equipment, type MuscleGroup } from './types/WodMovements'
+import { ALL_EQUIPMENT, ALL_MUSCLE_GROUPS, type Equipment, type MuscleGroup } from './types/WodMovements'
 import { generateLift, generateHiit, buildPrep } from './whiteboard/generator'
 
 function today() {
@@ -42,10 +42,11 @@ type Ctx = {
     setWorkout: (v: number) => void
 
     equipSel: Equipment[]
-    setEquipSel: React.Dispatch<React.SetStateAction<Equipment[]>> // ✅ accepts value or updater
+    setEquipSel: React.Dispatch<React.SetStateAction<Equipment[]>> // accepts value or updater
 
-    soreSel: MuscleGroup[]
-    setSoreSel: React.Dispatch<React.SetStateAction<MuscleGroup[]>> // ✅ accepts value or updater
+    // ✅ Focus Areas (checked by default). Unchecked = “sore/avoid”.
+    focusSel: MuscleGroup[]
+    setFocusSel: React.Dispatch<React.SetStateAction<MuscleGroup[]>> // accepts value or updater
 
     lift: LiftT
     hiit: HiitT
@@ -62,14 +63,14 @@ const BoardContext = createContext<Ctx | null>(null)
 
 export function BoardProvider({ children }: { children: React.ReactNode }) {
     const [date, setDate] = useState(today())
-    const [split, setSplit] = useState(0.5)     // default half / half
-    const [workout, setWorkout] = useState(40)  // default minutes, 20–60
+    const [split, setSplit] = useState(0.5) // default half / half
+    const [workout, setWorkout] = useState(40) // default minutes, 20–60
 
-    // ✅ Preselect all equipment on first load
+    // Preselect all equipment on first load
     const [equipSel, setEquipSel] = useState<Equipment[]>(() => [...ALL_EQUIPMENT])
 
-    // Empty by default; user checks what hurts
-    const [soreSel, setSoreSel] = useState<MuscleGroup[]>([])
+    // ✅ Focus Areas: all muscle groups selected by default
+    const [focusSel, setFocusSel] = useState<MuscleGroup[]>(() => [...ALL_MUSCLE_GROUPS])
 
     const [lift, setLift] = useState<LiftT>(null)
     const [hiit, setHiit] = useState<HiitT>(null)
@@ -78,9 +79,18 @@ export function BoardProvider({ children }: { children: React.ReactNode }) {
     const [primary, setPrimary] = useState<Set<MuscleGroup> | null>(null)
 
     const equipSet = useMemo(() => new Set<Equipment>(equipSel), [equipSel])
-    const soreSet = useMemo(() => new Set<MuscleGroup>(soreSel), [soreSel])
+    const focusSet = useMemo(() => new Set<MuscleGroup>(focusSel), [focusSel])
 
-    const key = `${date}|${split}|${workout}|${Array.from(equipSet).join(',')}|${Array.from(soreSet).join(',')}`
+    // ❗ Derive the “sore/avoid” set as ALL minus focus
+    const soreSet = useMemo(() => {
+        const s = new Set<MuscleGroup>()
+        for (const mg of ALL_MUSCLE_GROUPS) {
+            if (!focusSet.has(mg)) s.add(mg)
+        }
+        return s
+    }, [focusSet])
+
+    const key = `${date}|${split}|${workout}|${Array.from(equipSet).join(',')}|focus=[${Array.from(focusSet).join(',')}]`
 
     function generateAll() {
         const minutesLift = Math.round(workout * split)
@@ -184,10 +194,10 @@ export function BoardProvider({ children }: { children: React.ReactNode }) {
         setWorkout,
 
         equipSel,
-        setEquipSel, // now a standard React dispatcher
+        setEquipSel,
 
-        soreSel,
-        setSoreSel,  // standard dispatcher
+        focusSel,
+        setFocusSel,
 
         lift,
         hiit,

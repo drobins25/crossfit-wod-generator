@@ -3,14 +3,19 @@ import { ALL_EQUIPMENT, EQUIPMENT_LABEL, ALL_MUSCLE_GROUPS, MUSCLE_LABEL, type E
 import { useBoard } from './store'
 
 export default function Controls(){
-    const { date, setDate, equipSel, setEquipSel, soreSel, setSoreSel, workout, setWorkout, generateAll } = useBoard()
+    const { date, setDate, equipSel, setEquipSel, focusSel, setFocusSel, workout, setWorkout, generateAll } = useBoard()
 
+    const [workoutStr, setWorkoutStr] = React.useState(String(workout));
     // Re-generate when inputs change
-    useEffect(()=>{ generateAll() }, [date, equipSel, soreSel, workout])
+    useEffect(()=>{ generateAll() }, [date, equipSel, focusSel, workout])
 
     // Collapsible state
     const [equipCollapsed, setEquipCollapsed] = React.useState(true);
-    const [hurtCollapsed,  setHurtCollapsed]  = React.useState(true);
+    const [focusCollapsed, setFocusCollapsed] = React.useState(true)
+
+    const allFocusSelected = focusSel.length === ALL_MUSCLE_GROUPS.length
+    const toggleAllFocus = (checked: boolean) =>
+        setFocusSel(() => (checked ? [...ALL_MUSCLE_GROUPS] : []))
 
     // Equipment "Select all"
     const allSelected = equipSel.length === ALL_EQUIPMENT.length
@@ -42,11 +47,28 @@ export default function Controls(){
                            onChange={e => setDate(e.target.value)}/>
                 </div>
                 <div className="row row-compact" style={{marginTop: 8}}>
-                    <label>Total workout time</label>
-                    <input className="input input-compact" type="number" min={20} max={60} step={5}
-                           value={workout}
-                           onChange={e => setWorkout(Math.max(20, Math.min(60, Number(e.target.value) || 40)))}/>
-                    <span className="small">minutes (excludes warm-up / cool-down)</span>
+                    <label>Total workout time (min) </label>
+                    <input
+                        className="input input-compact input-xxs"
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        maxLength={3}                    // hard cap to 3 digits
+                        value={workoutStr}
+                        onChange={(e) => {
+                            const digits = e.target.value.replace(/\D+/g, '');
+                            setWorkoutStr(digits);
+                            const n = parseInt(digits || '0', 10);
+                            if (!Number.isNaN(n)) setWorkout(Math.max(0, Math.min(120, n)));
+                        }}
+                        onBlur={() => {
+                            if (workoutStr === '') {
+                                setWorkoutStr('40');
+                                setWorkout(40);
+                            }
+                        }}
+                    />
+                    <span className="small">(excludes warm-up / cool-down)</span>
                 </div>
             </div>
 
@@ -84,8 +106,8 @@ export default function Controls(){
                                     <input
                                         type="checkbox"
                                         checked={equipSel.includes(eq)}
-                                        onChange={e=>{
-                                            setEquipSel(s => e.target.checked ? [...s, eq] : s.filter(x=>x!==eq))
+                                        onChange={e => {
+                                            setEquipSel(s => e.target.checked ? [...s, eq] : s.filter(x => x !== eq))
                                         }}
                                     /> {EQUIPMENT_LABEL[eq]}
                                 </label>
@@ -97,41 +119,34 @@ export default function Controls(){
 
             {/* What hurts (collapsible) */}
             <section
-                className={`section collapsible ${hurtCollapsed ? 'collapsed' : ''}`}
-                aria-expanded={!hurtCollapsed}
-                aria-label="What hurts section"
+                className={`section collapsible ${focusCollapsed ? 'collapsed' : ''}`}
+                aria-expanded={!focusCollapsed}
+                aria-label="Focus Areas section"
             >
                 <div
                     className="section-head"
-                    onClick={() => setHurtCollapsed(c => !c)}
+                    onClick={() => setFocusCollapsed(c => !c)}
                     role="button"
                     tabIndex={0}
-                    onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setHurtCollapsed(c => !c)}
+                    onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setFocusCollapsed(c => !c)}
                 >
                     <div className="section-title">
                       <span className="section-title-row">
-                        What hurts?<span className="note-italic">(avoid for lift)</span>
+                        Training Focus
+                          {/*<span className="note-italic">(avoid unchecked)</span>*/}
                       </span>
                     </div>
-                    {/*<div className="section-title">Sore areas (lift avoids)</div>*/}
-                    <div className="section-actions" onClick={stop}>
-                        {/* Optional quick action */}
-                        {!hurtCollapsed && (
-                            <button
-                                className="btn ghost sm"
-                                onClick={() => setSoreSel(() => [])}
-                                title="Clear all selections"
-                            >
-                                Clear
-                            </button>
-                        )}
-                        {!hurtCollapsed && (
-                            <button
-                                className="btn ghost sm"
-                                onClick={() => setHurtCollapsed(true)}
-                            >
-                                Done
-                            </button>
+                    <div className="section-actions" onClick={e => e.stopPropagation()}>
+                        <label className="small">
+                            Select all
+                            <input
+                                type="checkbox"
+                                checked={allFocusSelected}
+                                onChange={e => toggleAllFocus(e.target.checked)}
+                            />
+                        </label>
+                        {!focusCollapsed && (
+                            <button className="btn ghost sm" onClick={() => setFocusCollapsed(true)}>Done</button>
                         )}
                         <span className="chev">▾</span>
                     </div>
@@ -144,10 +159,10 @@ export default function Controls(){
                                 <label key={mg}>
                                     <input
                                         type="checkbox"
-                                        checked={soreSel.includes(mg)}
-                                        onChange={e => {
-                                            setSoreSel(s => e.target.checked ? [...s, mg] : s.filter(x => x !== mg))
-                                        }}
+                                        checked={focusSel.includes(mg)}
+                                        onChange={e => setFocusSel(s =>
+                                            e.target.checked ? [...s, mg] : s.filter(x => x !== mg)
+                                        )}
                                     /> {MUSCLE_LABEL[mg]}
                                 </label>
                             ))}
