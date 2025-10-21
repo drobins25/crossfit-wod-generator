@@ -119,7 +119,7 @@ How it generates a WOD
     - Chooses a **focus muscle** from each candidate’s `strainedMuscleGroups`, excluding
       anything you checked under **What hurts**.
     - Picks a matching lift for that focus, then decides one of:
-        - *Build to a heavy 5-4-3-2-1*
+        - *Build to a heavy*
         - *EMOM X: N reps* (if the lift supports EMOM and time is adequate)
         - *Every 2:00 for S sets: R reps*
 

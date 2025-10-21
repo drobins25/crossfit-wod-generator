@@ -80,7 +80,7 @@ export function generateLift({
   const build = minutes >= 16 ? (rng() > 0.4) : (rng() > 0.6);
   let scheme: string;
   if (build) {
-    scheme = 'Build to a heavy 5-4-3-2-1';
+    scheme = 'Build to a heavy';
   } else {
     const emom = minutes >= 10 && !!chosen.emomOk;
     if (emom) {
