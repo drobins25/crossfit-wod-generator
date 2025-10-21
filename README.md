@@ -1,7 +1,6 @@
 Live Github.io Link - https://drobins25.github.io/crossfit-wod-generator/
 
-<img width="1084" height="825" alt="Screenshot 2025-10-17 at 2 59 47 PM" src="https://github.com/user-attachments/assets/67faf367-70d2-4c9b-837e-83cb37241f84" />
-
+<img width="1092" height="828" alt="Screenshot 2025-10-21 at 3 25 21 PM" src="https://github.com/user-attachments/assets/bf542c9f-dcfd-4ad0-99f8-b14326a90029" />
 
 WODSpark — Crossfit WOD Generator
 =====================
