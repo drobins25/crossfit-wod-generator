@@ -101,20 +101,22 @@ export default function Controls(){
                 <div className="section-body padded">
                     <div>
                         <div className="grid-check" onClick={e => e.stopPropagation()}>
-                            {ALL_EQUIPMENT.map(eq => (
-                                <label key={eq}>
-                                    <input
-                                        type="checkbox"
-                                        checked={equipSel.includes(eq)}
-                                        onChange={e => {
-                                            setEquipSel(s => e.target.checked ? [...s, eq] : s.filter(x => x !== eq))
-                                        }}
-                                    /> {EQUIPMENT_LABEL[eq]}
-                                </label>
-                            ))}
+                            <div className="grid-check two">
+                                {ALL_EQUIPMENT.map(eq => (
+                                    <label key={eq}>
+                                        <input
+                                            type="checkbox"
+                                            checked={equipSel.includes(eq)}
+                                            onChange={e => {
+                                                setEquipSel(s => e.target.checked ? [...s, eq] : s.filter(x => x !== eq))
+                                            }}
+                                        /> {EQUIPMENT_LABEL[eq]}
+                                    </label>
+                                ))}
+                            </div>
+                            </div>
                         </div>
                     </div>
-                </div>
             </section>
 
             {/* What hurts (collapsible) */}
@@ -155,20 +157,22 @@ export default function Controls(){
                 <div className="section-body padded">
                     <div>
                         <div className="grid-check" onClick={e => e.stopPropagation()}>
-                            {ALL_MUSCLE_GROUPS.map(mg => (
-                                <label key={mg}>
-                                    <input
-                                        type="checkbox"
-                                        checked={focusSel.includes(mg)}
-                                        onChange={e => setFocusSel(s =>
-                                            e.target.checked ? [...s, mg] : s.filter(x => x !== mg)
-                                        )}
-                                    /> {MUSCLE_LABEL[mg]}
-                                </label>
-                            ))}
+                            <div className="grid-check two">
+                                {ALL_MUSCLE_GROUPS.map(mg => (
+                                    <label key={mg}>
+                                        <input
+                                            type="checkbox"
+                                            checked={focusSel.includes(mg)}
+                                            onChange={e => setFocusSel(s =>
+                                                e.target.checked ? [...s, mg] : s.filter(x => x !== mg)
+                                            )}
+                                        /> {MUSCLE_LABEL[mg]}
+                                    </label>
+                                ))}
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
             </section>
         </div>
     )
