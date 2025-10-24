@@ -1,4 +1,3 @@
-Live Github.io Link - https://drobins25.github.io/crossfit-wod-generator/
 
 <img width="1134" height="827" alt="Screenshot 2025-10-24 at 11 49 14 AM" src="https://github.com/user-attachments/assets/c884f910-7ad9-47c1-a425-6b857df2c785" />
 
