@@ -147,11 +147,12 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   }
 }
 .header-tools .export {
-  justify-self: center;
+  /*justify-self: center;*/
   margin-top: 8px;
   font-size: small;
   color: #e7e8efb3;
-  font-weight: 600;
+  padding: 3px 7px;
+  justify-self: end; /* push button to the right edge */
 }
 @media (max-width: 520px){
   .header-tools {
