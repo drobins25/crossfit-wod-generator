@@ -101,7 +101,7 @@ export const wodLifts: WodLifts = {
     { id:"chestToBar", name:"Chest-to-Bar Pull-Up", equipment:["pullUpBar"], movementPattern:["verticalPull","bodyweight"], usedMuscleGroups:["back","arms","core","grip"], emomOk:true, amrapSetReps:10, difficulty:4 },
     { id:"barMuscleUp", name:"Bar Muscle-Up", equipment:["pullUpBar"], movementPattern:["verticalPull","transition","verticalPress","bodyweight"], usedMuscleGroups:["back","shoulders","arms","core","grip"], emomOk:true, amrapSetReps:5, difficulty:5 },
     { id:"ringMuscleUp", name:"Ring Muscle-Up", equipment:["gymnasticRings"], movementPattern:["verticalPull","transition","verticalPress","bodyweight"], usedMuscleGroups:["back","shoulders","arms","core","grip"], emomOk:true, amrapSetReps:5, difficulty:5 },
-    { id:"ropeClimb", name:"Rope Climb (subs rig)", equipment:["pullUpBar"], movementPattern:["verticalPull","bodyweight"], usedMuscleGroups:["back","arms","core","grip"], emomOk:true, amrapSetReps:3, difficulty:5 },
+    { id:"ropeClimb", name:"Rope Climb", equipment:["pullUpBar"], movementPattern:["verticalPull","bodyweight"], usedMuscleGroups:["back","arms","core","grip"], emomOk:true, amrapSetReps:3, difficulty:5 },
 
     // ==== NEW: wall-ball & odd object ====
     { id:"wallBallShot", name:"Wall-Ball Shot", equipment:["medicineBall","wallTarget"], movementPattern:["squatToThrow"], usedMuscleGroups:["quadriceps","glutes","shoulders","chest","core"], emomOk:true, amrapSetReps:18, difficulty:3 },

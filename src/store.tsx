@@ -11,6 +11,12 @@ type LiftT =
     focus: MuscleGroup
     move: string
     scheme: string
+    note?: string
+    /** NEW: when present, render bullet list as Odd/Even lines */
+    oddEven?: {
+        odd: { name: string; reps: number }
+        even: { name: string; reps: number }
+    }
     minutes: number
     difficulty: number
     groups: Set<MuscleGroup>
@@ -24,6 +30,7 @@ type HiitT =
     minutes: number
     blocks: string[]
     groups: Set<MuscleGroup>
+    note?: string           // ← NEW
 }
     | null
 

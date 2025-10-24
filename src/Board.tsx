@@ -70,12 +70,20 @@ export default function Board(){
                   {!lift ? <div className="marker line">No lift today, eh?</div> : (
                       <>
                         <div className="marker line">{lift.scheme}</div>
+                        {/*<div className="marker line scheme">{lift.scheme}</div>*/}
+                        {lift.note && <div className="scheme-sub small">{lift.note}</div>}
+                        {/* Bullet list */}
                         <div className="marker line list">
-                          <div className="mov-list">
-                          • {lift.move}
-                          </div>
+                          {lift.oddEven ? (
+                              <>
+                                <div>• Odd minutes — {lift.oddEven.odd.name} × {lift.oddEven.odd.reps}</div>
+                                <div>• Even minutes — {lift.oddEven.even.name} × {lift.oddEven.even.reps}</div>
+                              </>
+                          ) : (
+                              <div>• {lift.move}</div>
+                          )}
                         </div>
-                        <div className="line" style={{
+                        <div className="line focus" style={{
                           fontSize: 14,
                           opacity: .75
                         }}>Focus: {MUSCLE_LABEL[lift.focus as MuscleGroup] ?? String(lift.focus)}</div>
@@ -93,21 +101,29 @@ export default function Board(){
                   <div className="mov-list">
                     {!hiit ? <div className="marker line">No HIIT workout today, eh?</div> : (
                         <>
-                        <div className="marker line">{hiit.format}</div>
-                        <div className="mov-list">
-                          {hiit.blocks.map((b, i) => (<div key={i} className="marker line list">• {b}</div>))}
-                        </div>
+                          <div className="marker line">{hiit.format}</div>
+                          {hiit.note && <div className="scheme-sub small">{hiit.note}</div>}
+
+                          <div className="mov-list">
+                            {hiit.blocks.map((b, i) => (
+                                <div key={i} className="marker line list">• {b}</div>
+                            ))}
+                          </div>
+                          {/*<div className="marker line">{hiit.format}</div>*/}
+                          {/*<div className="mov-list">*/}
+                          {/*  {hiit.blocks.map((b, i) => (<div key={i} className="marker line list">• {b}</div>))}*/}
+                          {/*</div>*/}
                         </>
-                        )}
-                        </div>
-                      </div>
-                      </section>
+                    )}
+                  </div>
+                </div>
+              </section>
             </div>
           {/*</div>*/}
 
           <div className="divider"/>
           <div className="prepGrid">
-            {/* Warm-up (left) */}
+          {/* Warm-up (left) */}
             <section className="mini-board">
               {/*<div className="prepCard">*/}
                 <div className="board-head">
