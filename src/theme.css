@@ -91,7 +91,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 
-.board{background:var(--panel);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);padding:20px}
+.board{background:var(--panel);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);padding:20px;padding-bottom: 10px;}
 .board .marker{font-family:'Permanent Marker',cursive}
 .marker{font-family:'Permanent Marker',cursive}
 .board .title{
