@@ -147,10 +147,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   }
 }
 .header-tools .export {
-  /*justify-self: center;*/
-  margin-top: 8px;
-  font-size: small;
-  color: #e7e8efb3;
   padding: 3px 7px;
   justify-self: end; /* push button to the right edge */
 }
@@ -159,7 +155,13 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     grid-template-columns: 1fr; /* stack */
     justify-items: center;
   }
-  .header-tools .export { justify-self: center; margin-top: 8px; }
+  .header-tools .export {
+    justify-self: center;
+    margin-top: 8px;
+    font-size: small;
+    /*color: #e7e8efb3;*/
+    padding: 3px 7px;
+  }
 }
 .split-wrap{display:flex;gap:10px;align-items:center}
 
