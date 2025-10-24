@@ -112,7 +112,11 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   font-size: 16px;
 }
 .head{font-size:21px;margin-bottom:4px}
-.divider{height:1px;background:var(--border);margin:12px 0}
+.divider{
+  /*height:1px;*/
+  background:var(--border);
+  margin:12px 0
+}
 .blue{
   --wb-text: var(--blue);
   color:var(--blue)
@@ -143,8 +147,11 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   }
 }
 .header-tools .export {
-  padding: 8px 12px;
-  justify-self: end; /* push button to the right edge */
+  justify-self: center;
+  margin-top: 8px;
+  font-size: small;
+  color: #e7e8efb3;
+  font-weight: 600;
 }
 @media (max-width: 520px){
   .header-tools {
