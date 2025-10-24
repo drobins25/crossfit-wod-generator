@@ -1,5 +1,5 @@
 
-<img width="1134" height="827" alt="Screenshot 2025-10-24 at 11 49 14 AM" src="https://github.com/user-attachments/assets/c884f910-7ad9-47c1-a425-6b857df2c785" />
+<img width="1090" height="831" alt="Screenshot 2025-10-24 at 11 58 00 AM" src="https://github.com/user-attachments/assets/e21bce88-7400-4ae5-81af-bfc9240460aa" />
 
 WODSpark — Crossfit WOD Generator
 =====================
