@@ -29,13 +29,6 @@ export default function Controls(){
     const [showTip, setShowTip] = React.useState(false);
     const tipRef = React.useRef<HTMLDivElement>(null);
 
-    const uncollapseEquipmentIfSelected = () => {
-        if(equipCollapsed) {
-            setEquipCollapsed(c => !c)
-        }
-        return true
-    }
-
     // close on outside tap
     React.useEffect(()=>{
         function onDocClick(e: MouseEvent){
