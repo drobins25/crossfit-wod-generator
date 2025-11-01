@@ -1,5 +1,5 @@
 import { wodLifts, prepLibrary } from '../data/wodLifts'
-import type { Equipment, MuscleGroup, Movement } from '../types/WodMovements'
+import {Equipment, MuscleGroup, Movement, ALL_MUSCLE_GROUPS} from '../types/WodMovements'
 
 function mulberry32(a: number){ return function(){ let t=(a+=0x6D2B79F5)>>>0; t=Math.imul(t^(t>>>15), t|1); t^=t+Math.imul(t^(t>>>7), t|61); return ((t^(t>>>14))>>>0)/4294967296 } }
 function hashSeed(str: string){ let h=2166136261>>>0; for(let i=0;i<str.length;i++){ h^=str.charCodeAt(i); h= (h + (h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24))>>>0 } return h>>>0 }
@@ -10,6 +10,69 @@ function shuffle<T>(rng:()=>number, arr:T[]):T[]{ const a=arr.slice(); for(let i
 function hasEquipment(m: Movement, user: Set<Equipment>){
   if (!m.equipment || m.equipment.length===0) return true
   return m.equipment.every(eq => user.has(eq))
+}
+
+function primaryGroupFromMovement(
+    m: Movement,
+    sore: Set<MuscleGroup>
+): MuscleGroup {
+  const used = (m.usedMuscleGroups ?? []) as MuscleGroup[];
+  const strained = (m.strainedMuscleGroups ?? []) as MuscleGroup[];
+
+  // prefer first "used" that isn't sore
+  const fromUsed = used.find(g => !sore.has(g));
+  if (fromUsed) return fromUsed;
+
+  // then any used
+  if (used.length) return used[0] as MuscleGroup;
+
+  // then any strained
+  const fromStrained = strained.find(g => !sore.has(g));
+  if (fromStrained) return fromStrained;
+
+  return (strained[0] as MuscleGroup) || ('core' as MuscleGroup);
+}
+
+function primaryGroupFromPair(
+    a: Movement,
+    b: Movement,
+    sore: Set<MuscleGroup>
+): MuscleGroup {
+  // Count frequency across both used lists (excluding sore first)
+  const score = new Map<MuscleGroup, number>();
+
+  const bump = (g: MuscleGroup, w = 1) =>
+      score.set(g, (score.get(g) || 0) + w);
+
+  const preferList = (ms?: MuscleGroup[], weight = 2) => {
+    (ms ?? []).forEach(g => bump(g as MuscleGroup, weight));
+  };
+
+  // Heuristic: weight "used" higher than "strained"
+  const aUsed = a.usedMuscleGroups?.filter(g => !sore.has(g as MuscleGroup));
+  const bUsed = b.usedMuscleGroups?.filter(g => !sore.has(g as MuscleGroup));
+  const aStr = a.strainedMuscleGroups?.filter(g => !sore.has(g as MuscleGroup));
+  const bStr = b.strainedMuscleGroups?.filter(g => !sore.has(g as MuscleGroup));
+
+  preferList(aUsed as MuscleGroup[], 3);
+  preferList(bUsed as MuscleGroup[], 3);
+  preferList(aStr as MuscleGroup[], 1);
+  preferList(bStr as MuscleGroup[], 1);
+
+  // If nothing survived the sore filter, include all
+  if (score.size === 0) {
+    preferList(a.usedMuscleGroups as MuscleGroup[], 2);
+    preferList(b.usedMuscleGroups as MuscleGroup[], 2);
+    preferList(a.strainedMuscleGroups as MuscleGroup[], 1);
+    preferList(b.strainedMuscleGroups as MuscleGroup[], 1);
+  }
+
+  let best: MuscleGroup = 'core' as MuscleGroup;
+  let bestVal = -1;
+  for (const [g, v] of score) {
+    if (v > bestVal) { best = g; bestVal = v; }
+  }
+  return best;
 }
 
 export function generateLift({
@@ -71,7 +134,7 @@ export function generateLift({
 
   const allFocus = Array.from(new Set(candidates.flatMap(m => m.strainedMuscleGroups || [])))
   const focusChoices = allFocus.filter(g => !soreSet.has(g))
-  const focus = (focusChoices.length ? _pick(focusChoices) : (allFocus[0] ?? 'core')) as MuscleGroup
+  const focusChoice = (focusChoices.length ? _pick(focusChoices) : (allFocus[0] ?? 'core')) as MuscleGroup
 
   // === NEW: richer Push/Pull EMOM (keeps same return shape) ==============
   const pushLifts = candidates.filter(m => isPush(m) && avoidSore(m))
@@ -146,7 +209,7 @@ export function generateLift({
       const pullStrained = new Set<MuscleGroup>((odd.strainedMuscleGroups || ['core']) as MuscleGroup[])
 
       return {
-        focus,
+        focus: primaryGroupFromPair(even, odd, soreSet),
         // concise header line – your bullets render the detail
         move: `${even.name} / ${odd.name}`,
         scheme: `EMOM ${minutes} (odd/even)`,
@@ -168,14 +231,14 @@ export function generateLift({
   // ======================================================================
 
   // === Existing single-movement formats (unchanged) ======================
-  const liftsForFocus = candidates.filter(m => (m.strainedMuscleGroups || []).includes(focus) && avoidSore(m))
+  const liftsForFocus = candidates.filter(m => (m.strainedMuscleGroups || []).includes(focusChoice) && avoidSore(m))
   const pool = (liftsForFocus.length ? liftsForFocus : candidates.filter(avoidSore))
   const chosen = (pool.length ? _pick(pool) : _pick(candidates))
   let note: string | undefined
 
   if (!chosen) {
     return {
-      focus,
+      focus: 'core',
       move: 'Bodyweight Squat',
       scheme: `Every 2:00 for ${Math.max(3, Math.floor(minutes/2))} sets: 15 reps`,
       minutes, difficulty: 2,
@@ -208,7 +271,7 @@ export function generateLift({
   }
 
   return {
-    focus,
+    focus: primaryGroupFromMovement(chosen, soreSet),
     move: chosen.name,
     scheme,
     note,

@@ -19,13 +19,22 @@ export default function Controls(){
 
     // Equipment "Select all"
     const allSelected = equipSel.length === ALL_EQUIPMENT.length
-    const toggleAll = (checked: boolean) => setEquipSel(() => (checked ? [...ALL_EQUIPMENT] : []))
+    const toggleAll = (checked: boolean) => setEquipSel(() => (
+        checked ? [...ALL_EQUIPMENT] : [])
+    )
 
     // Stop header toggle when clicking controls in the header
     const stop = (e: React.MouseEvent) => e.stopPropagation()
 
     const [showTip, setShowTip] = React.useState(false);
     const tipRef = React.useRef<HTMLDivElement>(null);
+
+    const uncollapseEquipmentIfSelected = () => {
+        if(equipCollapsed) {
+            setEquipCollapsed(c => !c)
+        }
+        return true
+    }
 
     // close on outside tap
     React.useEffect(()=>{
@@ -89,7 +98,7 @@ export default function Controls(){
                     <div className="section-actions" onClick={stop}>
                         <label className="small">
                             Select all
-                            <input type="checkbox" checked={allSelected} onChange={e => toggleAll(e.target.checked)}/>
+                            <input type="checkbox" checked={allSelected} onChange={(e) => (toggleAll(e.target.checked))}/>
                         </label>
                         {!equipCollapsed && (
                             <button className="btn ghost sm" onClick={() => setEquipCollapsed(true)}>Done</button>

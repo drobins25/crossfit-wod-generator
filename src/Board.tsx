@@ -59,8 +59,8 @@ export default function Board(){
             <div key={quote} className="marker quote animate">{'“' + quote + '”'}</div>
           </div>
           {/*<div className="columns">*/}
-            <div className="board-grid">
-              <section className="mini-board">
+            <div key={quote} className="board-grid animate">
+              <section key={quote + "lift"} className="mini-board animate">
                 <div>
                   <div className="board-head">
                     <div className="marker head blue">💪 Lift {lift ? `(${lift.minutes} min) ` : ''}
@@ -73,7 +73,7 @@ export default function Board(){
                         {/*<div className="marker line scheme">{lift.scheme}</div>*/}
                         {lift.note && <div className="scheme-sub small">{lift.note}</div>}
                         {/* Bullet list */}
-                        <div className="marker line list">
+                        <div key={quote} className="marker line list animate">
                           {lift.oddEven ? (
                               <>
                                 <div>• Odd minutes — {lift.oddEven.odd.name} × {lift.oddEven.odd.reps}</div>
@@ -91,7 +91,7 @@ export default function Board(){
                   )}
                 </div>
               </section>
-              <section className="mini-board">
+              <section key={quote + "hiit"} className="mini-board animate">
                 <div>
                   <div className="board-head">
                     <div className="marker head red">🔥 HIIT {hiit ? `(${hiit.minutes} min) ` : ''}
@@ -102,11 +102,11 @@ export default function Board(){
                     {!hiit ? <div className="marker line">No HIIT workout today, eh?</div> : (
                         <>
                           <div className="marker line">{hiit.format}</div>
-                          {hiit.note && <div className="scheme-sub small">{hiit.note}</div>}
+                          {hiit.note && <div key={quote + 'hiit-scheme'} className="scheme-sub small">{hiit.note}</div>}
 
                           <div className="mov-list">
                             {hiit.blocks.map((b, i) => (
-                                <div key={i} className="marker line list">• {b}</div>
+                                <div key={i} className="marker line list animate">• {b}</div>
                             ))}
                           </div>
                           {/*<div className="marker line">{hiit.format}</div>*/}
@@ -122,15 +122,15 @@ export default function Board(){
           {/*</div>*/}
 
           <div className="divider"/>
-          <div className="prepGrid">
+          <div key={quote + "prep"} className="prepGrid animate">
           {/* Warm-up (left) */}
             <section className="mini-board">
               {/*<div className="prepCard">*/}
                 <div className="board-head">
                   <div className="marker head green">🟢 Warm-up 🟢</div>
                 </div>
-                {warm ? warm.map((w, i) => (<div key={i} className="marker line list">• {w}</div>)) :
-                    <div className="marker line list">—</div>}
+                {warm ? warm.map((w, i) => (<div key={i} className="marker line list animate">• {w}</div>)) :
+                    <div className="marker line list animate">—</div>}
               {/*</div>*/}
             </section>
 
@@ -140,7 +140,7 @@ export default function Board(){
                 <div className="marker head blue-soft">🔵 Cool-down 🔵</div>
               </div>
                 {/*<div className="sectionHead blue-soft">🧊 Cool-down</div>*/}
-                {cool ? cool.map((c, i) => (<div key={i} className="marker line list">• {c}</div>)) :
+                {cool ? cool.map((c, i) => (<div key={i} className="marker line list animate">• {c}</div>)) :
                     <div className="marker line">—</div>}
             </section>
           </div>
