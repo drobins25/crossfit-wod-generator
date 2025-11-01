@@ -20,21 +20,43 @@ export function generateLift({
   const rng = rngFromKey(key)
 
   // helpers
-  const hasEquipment = (m: any) => (m.equipment ?? []).every((e: Equipment) => equipment.has(e))
-  const avoidSore = (m: any) => !(m.strainedMuscleGroups ?? []).some((g: MuscleGroup) => soreSet.has(g))
-  const pick = <T,>(arr: T[]) => arr[Math.floor(rng() * arr.length)]
+  const hasEq = (m: any) => (m.equipment ?? []).every((e: Equipment) => equipment.has(e))
+  const avoidSore = (m: any) => {
+    const used = new Set<MuscleGroup>([
+      ...(m.strainedMuscleGroups ?? []),
+      ...(m.usedMuscleGroups ?? []),
+    ])
+    for (const g of used) { if (soreSet.has(g)) return false }
+    return true
+  }
+  const _pick = <T,>(arr: T[]) => arr[Math.floor(rng() * arr.length)]
   const isPush = (m: any) => {
-    const p = m.movementPattern ?? []
-    return p.includes('verticalPress') || p.includes('horizontalPress') || p.includes('overheadLockout') || p.includes('dipDrive') || p.includes('dipDriveOptional')
+    const p = (m.movementPattern ?? []) as string[]
+    const name = (m.name ?? '').toLowerCase()
+    return p.includes('verticalPress') || p.includes('horizontalPress') || p.includes('overhead') ||
+        p.includes('overheadLockout') || p.includes('dipDrive') || p.includes('dipDriveOptional') ||
+        /press|thruster|dip|bench|hspu|soh|jerk|wall[- ]?ball/.test(name)
   }
   const isPull = (m: any) => {
-    const p = m.movementPattern ?? []
-    return p.includes('verticalPull') || p.includes('horizontalPull') || p.includes('pull') || p.includes('uprightPull') || p.includes('wideGripPull')
+    const p = (m.movementPattern ?? []) as string[]
+    const name = (m.name ?? '').toLowerCase()
+    return p.includes('verticalPull') || p.includes('horizontalPull') || p.includes('pull') ||
+        p.includes('uprightPull') || p.includes('wideGripPull') ||
+        /row|clean|snatch|t2b|toes[- ]?to[- ]?bar|rope|muscle[- ]?up|pull[- ]?apart|face pull/.test(name)
   }
-  const union = (a: Set<MuscleGroup>, b: Set<MuscleGroup>) => new Set<MuscleGroup>([...a, ...b])
+  const repsFor = (m: any) => {
+    if (typeof m.amrapSetReps === 'number' && m.amrapSetReps > 0) return m.amrapSetReps
+    const name = (m.name ?? '').toLowerCase()
+    const hard = (m.difficulty ?? 3) >= 4
+    if (/snatch|clean|jerk|muscle[- ]?up|rope/.test(name)) return hard ? 3 : 5
+    if (/pull[- ]?up|ring row|pendlay|barbell row|row\b/.test(name)) return hard ? 5 : 8
+    if (/press|dip|bench|hspu|soh|push|jerk/.test(name)) return hard ? 6 : 10
+    if (/wall[- ]?ball/.test(name)) return 18
+    return hard ? 8 : 12
+  }
 
   // 1) equipment-filtered
-  let candidates = wodLifts.lifts.filter(hasEquipment)
+  let candidates = wodLifts.lifts.filter(m => hasEquipment(m, equipment))
   if (candidates.length === 0) candidates = wodLifts.lifts.slice()
   if (candidates.length === 0) {
     return {
@@ -49,47 +71,97 @@ export function generateLift({
 
   const allFocus = Array.from(new Set(candidates.flatMap(m => m.strainedMuscleGroups || [])))
   const focusChoices = allFocus.filter(g => !soreSet.has(g))
-  const focus = (focusChoices.length ? pick(focusChoices) : (allFocus[0] ?? 'core')) as MuscleGroup
+  const focus = (focusChoices.length ? _pick(focusChoices) : (allFocus[0] ?? 'core')) as MuscleGroup
 
-  // === NEW: try Push/Pull EMOM ==========================================
-  const pushers = candidates.filter(m => isPush(m) && avoidSore(m))
-  const pullers = candidates.filter(m => isPull(m) && avoidSore(m))
+  // === NEW: richer Push/Pull EMOM (keeps same return shape) ==============
+  const pushLifts = candidates.filter(m => isPush(m) && avoidSore(m))
+  const pullLifts = candidates.filter(m => isPull(m) && avoidSore(m))
 
-  const canPushPull = minutes >= 12 && pushers.length > 0 && pullers.length > 0
-  const doPushPull = canPushPull && (rng() < 0.4) // ~40% chance when eligible
+  // allow HIIT as the “other side” to explode variety, but still guarantee at least one weighted
+  let hiitPool = wodLifts.hiitMovements.filter(m => hasEq(m) && avoidSore(m))
+  if (!hiitPool.length) hiitPool = wodLifts.hiitMovements.slice()
+
+  const pushAlt = hiitPool.filter(m => isPush(m))
+  const pullAlt = hiitPool.filter(m => isPull(m))
+
+  const canPushPull =
+      minutes >= 12 &&
+      (pushLifts.length + pullLifts.length) > 0 &&
+      (pushAlt.length + pullAlt.length + pushLifts.length + pullLifts.length) > 1
+
+  // Bias a little higher on longer sessions
+  const doPushPull = canPushPull && (rng() < (minutes >= 16 ? 0.6 : 0.4))
 
   if (doPushPull) {
-    const push = pick(pushers)
-    let pull = pick(pullers)
-    if (pull === push && pullers.length > 1) pull = pullers.find(m => m !== push)!
+    // Build candidate “patterns” that guarantee ≥1 weighted choice
+    type Pair = { odd: Movement; even: Movement; hasWeighted: boolean }
 
-    const repsPush = push.amrapSetReps ?? 6
-    const repsPull = pull.amrapSetReps ?? 6
+    const patterns: Pair[] = []
 
-    const pushGroups = new Set<MuscleGroup>(
-        (push.usedMuscleGroups?.length ? push.usedMuscleGroups : (push.strainedMuscleGroups || ['core'])) as MuscleGroup[]
+    // Weighted push + alt pull
+    shuffle(rng, pushLifts).slice(0, 12).forEach(ps =>
+        shuffle(rng, pullAlt).slice(0, 12).forEach(pu =>
+            patterns.push({ odd: pu as any, even: ps as any, hasWeighted: true })
+        )
     )
-    const pullGroups = new Set<MuscleGroup>(
-        (pull.usedMuscleGroups?.length ? pull.usedMuscleGroups : (pull.strainedMuscleGroups || ['core'])) as MuscleGroup[]
+    // Weighted pull + alt push
+    shuffle(rng, pullLifts).slice(0, 12).forEach(pu =>
+        shuffle(rng, pushAlt).slice(0, 12).forEach(ps =>
+            patterns.push({ odd: pu as any, even: ps as any, hasWeighted: true })
+        )
     )
-    const pushStrained = new Set<MuscleGroup>((push.strainedMuscleGroups || ['core']) as MuscleGroup[])
-    const pullStrained = new Set<MuscleGroup>((pull.strainedMuscleGroups || ['core']) as MuscleGroup[])
+    // Weighted pull + weighted push
+    shuffle(rng, pullLifts).slice(0, 12).forEach(pu =>
+        shuffle(rng, pushLifts).slice(0, 12).forEach(ps =>
+            patterns.push({ odd: pu as any, even: ps as any, hasWeighted: true })
+        )
+    )
+    // Fallbacks if equipment is sparse (still attempt alt+alt; we’ll skip if no weighted available)
+    if (!patterns.length) {
+      shuffle(rng, pullAlt).slice(0, 12).forEach(pu =>
+          shuffle(rng, pushAlt).slice(0, 12).forEach(ps =>
+              patterns.push({ odd: pu as any, even: ps as any, hasWeighted: false })
+          )
+      )
+    }
 
-    return {
-      focus,
-      move: `${push.name} / ${pull.name}`,
-      scheme: `EMOM ${minutes} (odd/even)`,
-      // Slim, friendly explainer:
-      note: `Alternate every minute between the two movements (odd then even) for the full duration.`,
-      oddEven: {
-        // Convention: PULL on odd, PUSH on even (you can flip if you prefer)
-        odd:  { name: pull.name, reps: repsPull },
-        even: { name: push.name, reps: repsPush }
-      },
-      minutes,
-      difficulty: Math.max(push.difficulty ?? 3, pull.difficulty ?? 3),
-      groups: new Set<MuscleGroup>([...pushGroups, ...pullGroups]),
-      strained: new Set<MuscleGroup>([...pushStrained, ...pullStrained])
+    // Prefer patterns that include a weighted movement
+    const weightedFirst = patterns.filter(p => p.hasWeighted)
+    const poolPairs = weightedFirst.length ? weightedFirst : patterns
+    if (poolPairs.length) {
+      const chosenPair = poolPairs[Math.floor(rng()*poolPairs.length)]
+      const odd = chosenPair.odd
+      const even = chosenPair.even
+
+      const repsOdd  = repsFor(odd)
+      const repsEven = repsFor(even)
+
+      const pushGroups = new Set<MuscleGroup>(
+          (even.usedMuscleGroups?.length ? even.usedMuscleGroups : (even.strainedMuscleGroups || ['core'])) as MuscleGroup[]
+      )
+      const pullGroups = new Set<MuscleGroup>(
+          (odd.usedMuscleGroups?.length ? odd.usedMuscleGroups : (odd.strainedMuscleGroups || ['core'])) as MuscleGroup[]
+      )
+      const pushStrained = new Set<MuscleGroup>((even.strainedMuscleGroups || ['core']) as MuscleGroup[])
+      const pullStrained = new Set<MuscleGroup>((odd.strainedMuscleGroups || ['core']) as MuscleGroup[])
+
+      return {
+        focus,
+        // concise header line – your bullets render the detail
+        move: `${even.name} / ${odd.name}`,
+        scheme: `EMOM ${minutes} (odd/even)`,
+        // Keep your slim note wording
+        note: `Alternate every minute between the two movements (odd then even) for the full duration.`,
+        oddEven: {
+          // Keep your convention: odd = pull, even = push (we used pull-ish for odd above)
+          odd:  { name: odd.name,  reps: repsOdd  },
+          even: { name: even.name, reps: repsEven }
+        },
+        minutes,
+        difficulty: Math.max(odd.difficulty ?? 3, even.difficulty ?? 3),
+        groups: new Set<MuscleGroup>([...pushGroups, ...pullGroups]),
+        strained: new Set<MuscleGroup>([...pushStrained, ...pullStrained])
+      }
     }
   }
 
@@ -98,8 +170,8 @@ export function generateLift({
   // === Existing single-movement formats (unchanged) ======================
   const liftsForFocus = candidates.filter(m => (m.strainedMuscleGroups || []).includes(focus) && avoidSore(m))
   const pool = (liftsForFocus.length ? liftsForFocus : candidates.filter(avoidSore))
-  const chosen = (pool.length ? pick(pool) : pick(candidates))
-  let note: string | undefined;   // NEW
+  const chosen = (pool.length ? _pick(pool) : _pick(candidates))
+  let note: string | undefined
 
   if (!chosen) {
     return {
@@ -121,16 +193,16 @@ export function generateLift({
   let scheme: string
   if (build) {
     scheme = 'Build to a heavy'
-    note = 'Climb in weight with crisp reps. 4–6 sets of 3–5 reps; rest 2–3 min. Stop one good set before failure.';
+    note = 'Climb in weight with crisp reps. 4–6 sets of 3–5 reps; rest 2–3 min. Stop one good set before failure.'
   } else {
     const emom = minutes >= 10 && !!chosen.emomOk
     if (emom) {
-      note = 'Every minute on the minute: hit smooth, unbroken reps and use the remainder to recover. Pick a load you can hold across all minutes.';
+      note = 'Every minute on the minute: hit smooth, unbroken reps and use the remainder to recover. Pick a load you can hold across all minutes.'
       scheme = `EMOM ${minutes}: ${chosen.amrapSetReps ?? 5} reps`
     } else {
       const sets = Math.max(3, Math.floor(minutes / 2))
       const reps = chosen.amrapSetReps ?? 6
-      note = 'On a 2:00 clock: perform the prescribed reps, then rest the remaining time. Aim for consistent quality; add small weight if moving well.';
+      note = 'On a 2:00 clock: perform the prescribed reps, then rest the remaining time. Aim for consistent quality; add small weight if moving well.'
       scheme = `Every 2:00 for ${sets} sets: ${reps} reps`
     }
   }
@@ -185,7 +257,6 @@ export function generateHiit({
   function pickGoTo(pool: Movement[]) {
     const go = pool.filter(m => GO_TO_IDS.has(m.id))
     if (go.length) return go[Math.floor(rng()*go.length)]
-    // fallback: lowest difficulty mono-structural or simple bodyweight
     const fallback = pool.slice().sort((a,b)=>diff(a)-diff(b))
     return fallback[0]
   }
@@ -225,8 +296,6 @@ export function generateHiit({
   const basePool = (scheme === 'EMOM' || scheme === 'OT2') && emomPool.length ? emomPool : pool
 
   // ---- difficulty-aware selection ---------------------------------------
-  // Build the set of movements while limiting “very hard” items and
-  // avoiding back-to-back high-grip choices.
   function pickBalanced(pool: Movement[], n: number) {
     const candidates = shuffle(rng, pool).slice()
     const result: Movement[] = []
@@ -237,7 +306,6 @@ export function generateHiit({
       const wouldBeBackToBackGrip = result.length && hitsGrip(result[result.length-1]) && hitsGrip(m)
       const hard = isVeryHard(m)
 
-      // rules for EMOM/OT2 are stricter
       const hardCap = (scheme === 'EMOM' || scheme === 'OT2') ? 1 : 2
       if (hard && veryHardCount >= hardCap) continue
       if ((scheme === 'EMOM' || scheme === 'OT2') && wouldBeBackToBackGrip) continue
@@ -246,7 +314,6 @@ export function generateHiit({
       if (hard) veryHardCount++
     }
 
-    // if we underfilled (rare), top up with easiest remaining
     if (result.length < n) {
       const rest = pool.filter(x => !result.includes(x)).slice().sort((a,b)=>diff(a)-diff(b))
       result.push(...rest.slice(0, n - result.length))
@@ -265,7 +332,6 @@ export function generateHiit({
     const avgDiff = chosen.reduce((s,m)=>s+(m.difficulty ?? 3),0)/chosen.length
     const addRest = avgDiff >= 4 && minutes >= 14
     format = `EMOM ${minutes}${addRest ? ' + Every 4th minute REST' : ''}`
-    // per-movement reps tuned for sustainability
     lines = chosen.map(m => `${m.name} — ${(m.amrapSetReps ?? 10)} reps`)
     note = 'Every minute on the minute. Hit the work, then breathe. Pick reps you can sustain across all minutes.'
   }
@@ -278,7 +344,6 @@ export function generateHiit({
   }
   else if (scheme === 'FORTIME') {
     format = `For Time (${minutes} min cap)`
-    // simple for-time: sensible totals per movement
     lines = chosen.map(m => {
       const base = (m.amrapSetReps ?? 10)
       const scale = minutes <= 12 ? 3 : 4
@@ -290,14 +355,11 @@ export function generateHiit({
   else if (scheme === 'LADDER') {
     const ladder = minutes >= 18 && rng() < 0.5 ? '10-9-8-7-6-5-4-3-2-1' : '21-15-9'
     format = `For Time: ${ladder}`
-    // ladders define reps—names only
     lines = chosen.map(m => m.name)
     note = 'Descending ladder—reps drop as fatigue rises. Keep positions crisp and pace the early sets.'
   }
   else if (scheme === 'INTERVALS') {
-    // A/B Intervals: A cycles through chosen movements, B is a single go-to
-    const options = minutes <= 10
-        ? [[30,30],[40,20],[20,10]] as const
+    const options = minutes <= 10 ? [[30,30],[40,20],[20,10]] as const
         : [[40,20],[45,15],[30,30]] as const
     const [work, rest] = options[Math.floor(rng()*options.length)]
     const rounds = Math.max(4, Math.floor((minutes*60)/(work+rest)))
@@ -305,20 +367,16 @@ export function generateHiit({
     const goTo = pickGoTo(pool)
     format = `Intervals ${work}:${rest} × ${rounds} — A/B`
 
-    // ⬇️ NEW: each A-movement as its own line, plus a single B line
     const aLines = chosen.map(m => `A: ${m.name}`)
     const bLine  = `B: ${goTo.name}`
-
     lines = [...aLines, bLine]
 
     note = 'Alternate sets: A cycles through the listed movements (one per round); B is the same go-to each time. Push the work window; recover on rest.'
   }
   else if (scheme === 'OT2') {
-    // On the clock: 2:00 or 1:30 depending on duration
     const period = minutes <= 10 ? 90 : 120
     const rounds = Math.max(3, Math.floor((minutes*60)/period))
     format = `On the ${period/60 === 2 ? '2:00' : '1:30'} × ${rounds} rounds`
-    // reps scaled to allow :20–:40s rest
     lines = chosen.map(m => {
       const base = m.amrapSetReps ?? 10
       const scale = period === 120 ? 1 : 0.75
@@ -327,7 +385,7 @@ export function generateHiit({
     })
     note = 'Start a new round on the clock. Finish fast to earn more rest. Aim for consistent round times.'
   }
-  else { // CHIPPER
+  else {
     format = `Chipper (${minutes} min cap)`
     lines = chosen.map((m, i) => {
       const base = (m.amrapSetReps ?? 12)
@@ -342,13 +400,10 @@ export function generateHiit({
   return { format, minutes, blocks: lines, groups, note }
 }
 
-
-
 export function buildPrep({
                             lift,
                             hiit
                           }: {
-  // lift/hiit shapes should match your store typing
   lift: {
     focus: MuscleGroup;
     move: string;
@@ -356,23 +411,21 @@ export function buildPrep({
     minutes: number;
     difficulty: number;
     groups: Set<MuscleGroup>;
-    strained: Set<MuscleGroup>; // NEW
+    strained: Set<MuscleGroup>;
+    note?: string;
+    oddEven?: { odd: { name: string; reps: number }, even: { name: string; reps: number } }
   };
   hiit: { format: string; minutes: number; blocks: string[]; groups: Set<MuscleGroup> };
 }) {
-  // If lift exists, prefer it exclusively, otherwise fall back to HIIT groups.
   const primary = new Set<MuscleGroup>();
   const weighted = new Map<MuscleGroup, number>();
 
   if (lift) {
-    // Weight strained groups higher (2) and used groups lower (1)
     lift.groups.forEach((g) => weighted.set(g, Math.max(weighted.get(g) || 0, 1)));
     lift.strained.forEach((g) => weighted.set(g, Math.max(weighted.get(g) || 0, 2)));
-    // Build primary (for quotes, etc.) as union of both
     lift.groups.forEach((g) => primary.add(g));
     lift.strained.forEach((g) => primary.add(g));
   } else {
-    // Rare fallback if lift is missing
     hiit.groups.forEach((g) => {
       primary.add(g);
       weighted.set(g, 1);
