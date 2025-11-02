@@ -157,7 +157,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .center { text-align: center; }
 
 .quote {
-  display:inline-block; font-size:19px; opacity:.9; margin:4px 0 12px; padding:2px 6px; position:relative;
+  display:inline-block; font-size:14px; opacity:.9; margin:4px 0 12px; padding:2px 6px; position:relative;
   background-image: linear-gradient(90deg, rgba(255,235,130,.55), rgba(255,235,130,.55));
   background-repeat:no-repeat; background-size:0% 60%; background-position:0 70%;
 }
