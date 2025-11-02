@@ -1,79 +1,263 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { ALL_EQUIPMENT, EQUIPMENT_LABEL, ALL_MUSCLE_GROUPS, MUSCLE_LABEL, type Equipment } from './types/WodMovements'
+import {useWorkoutType, WorkoutType} from './workoutTypes/context'
+import {getEquipmentForType, getWorkoutTypeOptions} from './workoutTypes/registry'
 import { useBoard } from './store'
 
-export default function Controls(){
-    const { date, setDate, equipSel, setEquipSel, focusSel, setFocusSel, workout, setWorkout, generateAll } = useBoard()
+type Props = { date: string; setDate: (v: string) => void };
 
-    const [workoutStr, setWorkoutStr] = React.useState(String(workout));
+/* Date buttons (Prev | Date | Next) */
+export function DatePickerButtons({ date, setDate }: Props) {
+    const inputRef = React.useRef<HTMLInputElement>(null);
+
+    // --- local-safe ISO helpers (avoid TZ off-by-one) ---
+    const toISO = (d: Date) => {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const da = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${da}`;
+    };
+    const parseISO = (s: string) => {
+        const [y, m, d] = s.split('-').map(Number);
+        const out = new Date();
+        out.setFullYear(y, (m ?? 1) - 1, d ?? 1);
+        out.setHours(0, 0, 0, 0);
+        return out;
+    };
+
+    const fmt = React.useMemo(
+        () =>
+            new Intl.DateTimeFormat(undefined, {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric',
+            }),
+        []
+    );
+
+    const move = (delta: number) => {
+        const base = parseISO(date);
+        base.setDate(base.getDate() + delta);
+        setDate(toISO(base));
+    };
+
+    const openNative = () => {
+        const el = inputRef.current;
+        if (!el) return;
+        // keep in sync before opening
+        el.value = date;
+        // Modern Chromium / Safari 16.4+
+        if (typeof el.showPicker === 'function') {
+            el.showPicker();
+        } else {
+            // Fallback
+            el.focus();
+            el.click();
+        }
+    };
+
+    const label = React.useMemo(() => fmt.format(parseISO(date)), [date, fmt]);
+
+    return (
+        <div className="segmented-wrap block-row">
+            <div className="segmented-title marker line center">Workout Date</div>
+            <h3 style={{fontSize: "xx-small", textAlign: 'center'}}>Pick the day you want to train. Tap the center date to open the
+                calendar.</h3>
+
+            {/* The visible 3-button row */}
+            <div className="segmented-grid segmented-3 date-grid" role="group" aria-label="Session date">
+                <button type="button" className="segmented-btn" onClick={() => move(-1)}>
+                    ← Prev
+                </button>
+
+                <button
+                    type="button"
+                    className="segmented-btn is-active"
+                    onClick={openNative}
+                    aria-haspopup="dialog"
+                    aria-label="Open calendar"
+                    title="Open calendar"
+                >
+                    {label}
+                </button>
+
+                <button type="button" className="segmented-btn" onClick={() => move(1)}>
+                    Next →
+                </button>
+            </div>
+
+            {/* Hidden native date input the center button triggers */}
+            <input
+                ref={inputRef}
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                // visually hidden but still interactive for showPicker()/click()
+                style={{
+                    position: 'absolute',
+                    width: 1,
+                    height: 1,
+                    opacity: 0,
+                    pointerEvents: 'none',
+                }}
+                aria-hidden="true"
+            />
+        </div>
+    );
+}
+
+export default function Controls() {
+    const {workoutType, setWorkoutType} = useWorkoutType()
+    const {date, setDate, equipSel, setEquipSel, focusSel, setFocusSel, workout, setWorkout, generateAll } = useBoard()
+
+    const workoutTypes = React.useMemo(() => getWorkoutTypeOptions(), []);
+    const [workoutStr, setWorkoutStr] = useState(String(workout))
+
+    // --- Sticky "Select all" for equipment (persists across type changes + reloads) ---
+    const [equipAllSticky, setEquipAllSticky] = useState(false)
+    const allBoxRef = useRef<HTMLInputElement>(null)
+
+    // On mount, read sticky flag from localStorage
+    useEffect(() => {
+        const sticky = localStorage.getItem('equipAllSticky') === '1'
+        setEquipAllSticky(sticky)
+    }, [])
+
+    // Allowed equipment for the current workout type
+    const allowedEquip: Equipment[] = useMemo(() => {
+        return getEquipmentForType(workoutType)
+    }, [workoutType])
+
+    // Promote to sticky ONLY when user manually selects everything for this type
+    useEffect(() => {
+        const allForType = allowedEquip.length > 0 && allowedEquip.every(eq => equipSel.includes(eq))
+        if (allForType && !equipAllSticky) {
+            setEquipAllSticky(true)
+            localStorage.setItem('equipAllSticky', '1')
+        }
+    }, [equipSel, allowedEquip, equipAllSticky])
+
+    // Show indeterminate state when partially selected (and not sticky)
+    useEffect(() => {
+        if (!allBoxRef.current) return
+        const allForType = allowedEquip.length > 0 && allowedEquip.every(eq => equipSel.includes(eq))
+        const none = equipSel.length === 0
+        allBoxRef.current.indeterminate = !allForType && !none && !equipAllSticky
+    }, [equipSel, allowedEquip, equipAllSticky])
+
+    // IMPORTANT: do NOT reset equipment here on workoutType changes.
+    // The store owns that logic now to avoid loops.
+
     // Re-generate when inputs change
-    useEffect(()=>{ generateAll() }, [date, equipSel, focusSel, workout])
+    useEffect(() => { generateAll() }, [date, equipSel, focusSel, workout])
 
     // Collapsible state
-    const [equipCollapsed, setEquipCollapsed] = React.useState(true);
-    const [focusCollapsed, setFocusCollapsed] = React.useState(true)
+    const [equipCollapsed, setEquipCollapsed] = useState(true)
+    const [focusCollapsed, setFocusCollapsed] = useState(true)
 
-    const allFocusSelected = focusSel.length === ALL_MUSCLE_GROUPS.length
+    // const allFocusSelected = focusSel.length === ALL_MUSCLE_GROUPS.length
     const toggleAllFocus = (checked: boolean) =>
         setFocusSel(() => (checked ? [...ALL_MUSCLE_GROUPS] : []))
 
-    // Equipment "Select all"
-    const allSelected = equipSel.length === ALL_EQUIPMENT.length
-    const toggleAll = (checked: boolean) => setEquipSel(() => (
-        checked ? [...ALL_EQUIPMENT] : [])
-    )
+    // ---- Training Focus "Select all" sticky state ----
+    const [focusAllSticky, setFocusAllSticky] = React.useState(true);
+
+    // Keep sticky button visually in sync if focusSel changes externally
+    const allFocusSelected = focusSel.length === ALL_MUSCLE_GROUPS.length;
+    React.useEffect(() => {
+        setFocusAllSticky(allFocusSelected);
+    }, [allFocusSelected]);
+
+    const toggleAllFocusButtons = (checked: boolean) => {
+        setFocusAllSticky(checked);
+        setFocusSel(() => (checked ? [...ALL_MUSCLE_GROUPS] : []));
+    };
+
+    // Equipment "Select all" — controlled by equipAllSticky; acts on allowedEquip for current type
+    const toggleAllEquip = (checked: boolean) => {
+        setEquipAllSticky(checked)
+        localStorage.setItem('equipAllSticky', checked ? '1' : '0')
+        setEquipSel(() => (checked ? [...allowedEquip] : []))
+    }
 
     // Stop header toggle when clicking controls in the header
     const stop = (e: React.MouseEvent) => e.stopPropagation()
 
-    const [showTip, setShowTip] = React.useState(false);
-    const tipRef = React.useRef<HTMLDivElement>(null);
+    const [showTip, setShowTip] = useState(false)
+    const tipRef = useRef<HTMLDivElement>(null)
 
     // close on outside tap
-    React.useEffect(()=>{
-        function onDocClick(e: MouseEvent){
-            if (!tipRef.current) return;
-            if (!tipRef.current.contains(e.target as Node)) setShowTip(false);
+    useEffect(() => {
+        function onDocClick(e: MouseEvent) {
+            if (!tipRef.current) return
+            if (!tipRef.current.contains(e.target as Node)) setShowTip(false)
         }
-        document.addEventListener('click', onDocClick);
-        return ()=>document.removeEventListener('click', onDocClick);
-    },[]);
+        document.addEventListener('click', onDocClick)
+        return () => document.removeEventListener('click', onDocClick)
+    }, [])
 
     return (
-        <div className="panel">
+        <div>
+            {/* Workout Date */}
             <div className="section">
-                <h3>Session</h3>
-                <div className="row row-compact">
-                    <label>Date</label>
-                    <input className="input input-compact" type="date" value={date}
-                           onChange={e => setDate(e.target.value)}/>
-                </div>
-                <div className="row row-compact" style={{marginTop: 8}}>
-                    <label>Total workout time (min) </label>
-                    <input
-                        className="input input-compact input-xxs"
-                        type="text"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        maxLength={3}                    // hard cap to 3 digits
-                        value={workoutStr}
-                        onChange={(e) => {
-                            const digits = e.target.value.replace(/\D+/g, '');
-                            setWorkoutStr(digits);
-                            const n = parseInt(digits || '0', 10);
-                            if (!Number.isNaN(n)) setWorkout(Math.max(0, Math.min(120, n)));
-                        }}
-                        onBlur={() => {
-                            if (workoutStr === '') {
-                                setWorkoutStr('40');
-                                setWorkout(40);
-                            }
-                        }}
-                    />
-                    <span className="small">(excludes warm-up / cool-down)</span>
+                <DatePickerButtons date={date} setDate={setDate}/>
+            </div>
+            <br/>
+            {/* Total workout time (segmented buttons) */}
+            <div className="section">
+                <div className="segmented-wrap block-row">
+                    <div className="segmented-title marker line center">Workout Duration</div>
+                    <h3 style={{fontSize: "xx-small", textAlign: 'center'}}>Choose your total work time (excludes
+                        warm-up/cool-down). Use the split slider to balance Lift ↔ HIIT.</h3>
+                    <div className="segmented-grid segmented-3" role="radiogroup" aria-label="Workout duration">
+                        {([10, 20, 30, 40, 50, 60] as const).map((m) => {
+                            const active = workout === m;
+                            return (
+                                <button
+                                    key={m}
+                                    type="button"
+                                    className={`segmented-btn ${active ? 'is-active' : ''}`}
+                                    aria-pressed={active}
+                                    onClick={() => {
+                                        setWorkout(m);
+                                        setWorkoutStr(String(m)); // keep legacy text state aligned
+                                    }}
+                                >
+                                    {m} min
+                                </button>
+                            );
+                        })}
+                    </div>
                 </div>
             </div>
 
+            <br/>
+            {/* Workout Type */}
+            <div className="section">
+                <div className="segmented-wrap block-row">
+                    <div className="segmented-title marker line center">Workout type</div>
+                    <h3 style={{fontSize: "xx-small", textAlign: 'center'}}>Select a training style and we’ll generate
+                        sessions that fit your space, gear, and style-specific formats.</h3>
+                    <div className="segmented-grid segmented-3" role="group" aria-label="Workout type">
+                        {getWorkoutTypeOptions().map(({id, label}) => {
+                            const active = id === workoutType;
+                            return (
+                                <button
+                                    key={id}
+                                    type="button"
+                                    className={`segmented-btn ${active ? 'is-active' : ''}`}
+                                    aria-pressed={active}
+                                    onClick={() => setWorkoutType(id as WorkoutType)}
+                                    title={label}
+                                >
+                                    {label}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+            </div>
+            <br/>
             {/* Equipment (collapsible) */}
             <section
                 className={`section collapsible ${equipCollapsed ? 'collapsed' : ''}`}
@@ -82,17 +266,27 @@ export default function Controls(){
             >
                 <div
                     className="section-head"
-                    onClick={() => setEquipCollapsed(c => !c)}
+                    onClick={() => setEquipCollapsed((c) => !c)}
                     role="button"
                     tabIndex={0}
-                    onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setEquipCollapsed(c => !c)}
+                    onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setEquipCollapsed((c) => !c)}
                 >
                     <div className="section-title">Equipment</div>
+
                     <div className="section-actions" onClick={stop}>
-                        <label className="small">
+                        {/* Select all → button, reusing segmented styles */}
+                        <button
+                            type="button"
+                            className={`segmented-btn sm ${equipAllSticky ? 'is-active' : ''}`}
+                            aria-pressed={equipAllSticky}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                toggleAllEquip(!equipAllSticky); // your existing handler
+                            }}
+                        >
                             Select all
-                            <input type="checkbox" checked={allSelected} onChange={(e) => (toggleAll(e.target.checked))}/>
-                        </label>
+                        </button>
+
                         {!equipCollapsed && (
                             <button className="btn ghost sm" onClick={() => setEquipCollapsed(true)}>Done</button>
                         )}
@@ -102,26 +296,44 @@ export default function Controls(){
 
                 <div className="section-body padded">
                     <div>
-                        <div className="grid-check" onClick={e => e.stopPropagation()}>
-                            <div className="grid-check two">
-                                {ALL_EQUIPMENT.map(eq => (
-                                    <label key={eq}>
-                                        <input
-                                            type="checkbox"
-                                            checked={equipSel.includes(eq)}
-                                            onChange={e => {
-                                                setEquipSel(s => e.target.checked ? [...s, eq] : s.filter(x => x !== eq))
-                                            }}
-                                        /> {EQUIPMENT_LABEL[eq]}
-                                    </label>
-                                ))}
-                            </div>
-                            </div>
+                        {/* segmented button grid instead of checkboxes */}
+                        <div
+                            className="segmented-grid segmented-auto equip-grid"
+                            role="group"
+                            aria-label="Equipment"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            {allowedEquip.map((eq) => {
+                                const active = equipSel.includes(eq);
+                                return (
+                                    <button
+                                        key={eq}
+                                        type="button"
+                                        className={`segmented-btn ${active ? 'is-active' : ''}`}
+                                        aria-pressed={active}
+                                        title={EQUIPMENT_LABEL[eq]}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setEquipSel((s) => {
+                                                const next = active ? s.filter((x) => x !== eq) : [...s, eq];
+                                                // if "Select all" was sticky and user toggles any chip off, unstick it
+                                                if (equipAllSticky && next.length !== allowedEquip.length) {
+                                                    setEquipAllSticky(false);
+                                                }
+                                                return next;
+                                            });
+                                        }}
+                                    >
+                                        {EQUIPMENT_LABEL[eq]}
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
+                </div>
             </section>
-
-            {/* What hurts (collapsible) */}
+            <br/>
+            {/* Training Focus (collapsible) */}
             <section
                 className={`section collapsible ${focusCollapsed ? 'collapsed' : ''}`}
                 aria-expanded={!focusCollapsed}
@@ -129,26 +341,30 @@ export default function Controls(){
             >
                 <div
                     className="section-head"
-                    onClick={() => setFocusCollapsed(c => !c)}
+                    onClick={() => setFocusCollapsed((c) => !c)}
                     role="button"
                     tabIndex={0}
-                    onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setFocusCollapsed(c => !c)}
+                    onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && setFocusCollapsed((c) => !c)}
                 >
                     <div className="section-title">
-                      <span className="section-title-row">
-                        Training Focus
-                          {/*<span className="note-italic">(avoid unchecked)</span>*/}
-                      </span>
+                        <span className="section-title-row">Training Focus</span>
                     </div>
-                    <div className="section-actions" onClick={e => e.stopPropagation()}>
-                        <label className="small">
+
+                    <div className="section-actions" onClick={(e) => e.stopPropagation()}>
+                        {/* Select all → segmented button (matches Equipment) */}
+                        <button
+                            type="button"
+                            className={`segmented-btn sm ${focusAllSticky ? 'is-active' : ''}`}
+                            aria-pressed={focusAllSticky}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                toggleAllFocusButtons(!focusAllSticky);
+                            }}
+                            title="Select all focus areas"
+                        >
                             Select all
-                            <input
-                                type="checkbox"
-                                checked={allFocusSelected}
-                                onChange={e => toggleAllFocus(e.target.checked)}
-                            />
-                        </label>
+                        </button>
+
                         {!focusCollapsed && (
                             <button className="btn ghost sm" onClick={() => setFocusCollapsed(true)}>Done</button>
                         )}
@@ -158,23 +374,44 @@ export default function Controls(){
 
                 <div className="section-body padded">
                     <div>
-                        <div className="grid-check" onClick={e => e.stopPropagation()}>
-                            <div className="grid-check two">
-                                {ALL_MUSCLE_GROUPS.map(mg => (
-                                    <label key={mg}>
-                                        <input
-                                            type="checkbox"
-                                            checked={focusSel.includes(mg)}
-                                            onChange={e => setFocusSel(s =>
-                                                e.target.checked ? [...s, mg] : s.filter(x => x !== mg)
-                                            )}
-                                        /> {MUSCLE_LABEL[mg]}
-                                    </label>
-                                ))}
-                                </div>
-                            </div>
+                        {/* segmented button grid instead of checkboxes */}
+                        <div
+                            className="segmented-grid segmented-auto focus-grid"
+                            role="group"
+                            aria-label="Training focus"
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            {ALL_MUSCLE_GROUPS.map((mg) => {
+                                const active = focusSel.includes(mg);
+                                return (
+                                    <button
+                                        key={mg}
+                                        type="button"
+                                        className={`segmented-btn ${active ? 'is-active' : ''}`}
+                                        aria-pressed={active}
+                                        title={MUSCLE_LABEL[mg]}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setFocusSel((s) => {
+                                                const next = active ? s.filter((x) => x !== mg) : [...s, mg];
+
+                                                // keep sticky state honest:
+                                                if (focusAllSticky && next.length !== ALL_MUSCLE_GROUPS.length) {
+                                                    setFocusAllSticky(false);
+                                                } else if (!focusAllSticky && next.length === ALL_MUSCLE_GROUPS.length) {
+                                                    setFocusAllSticky(true);
+                                                }
+                                                return next;
+                                            });
+                                        }}
+                                    >
+                                        {MUSCLE_LABEL[mg]}
+                                    </button>
+                                );
+                            })}
                         </div>
                     </div>
+                </div>
             </section>
         </div>
     )

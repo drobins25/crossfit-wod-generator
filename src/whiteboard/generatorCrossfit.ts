@@ -128,15 +128,16 @@ export function generateLift({
       scheme: `Every 2:00 for ${Math.max(3, Math.floor(minutes/2))} sets: 15 reps`,
       minutes, difficulty: 2,
       strained: new Set<MuscleGroup>(['core'] as MuscleGroup[]),
-      groups:   new Set<MuscleGroup>(['core'] as MuscleGroup[])
+      groups:   new Set<MuscleGroup>(['core'] as MuscleGroup[]),
+      note: 'Quality air squats; full depth; steady pace.'
     }
   }
 
   const allFocus = Array.from(new Set(candidates.flatMap(m => m.strainedMuscleGroups || [])))
-  const focusChoices = allFocus.filter(g => !soreSet.has(g))
+  const focusChoices = allFocus.filter(g => !soreSet.has(g as MuscleGroup))
   const focusChoice = (focusChoices.length ? _pick(focusChoices) : (allFocus[0] ?? 'core')) as MuscleGroup
 
-  // === NEW: richer Push/Pull EMOM (keeps same return shape) ==============
+  // === Push/Pull EMOM variant ============================================
   const pushLifts = candidates.filter(m => isPush(m) && avoidSore(m))
   const pullLifts = candidates.filter(m => isPull(m) && avoidSore(m))
 
@@ -210,13 +211,10 @@ export function generateLift({
 
       return {
         focus: primaryGroupFromPair(even, odd, soreSet),
-        // concise header line – your bullets render the detail
         move: `${even.name} / ${odd.name}`,
         scheme: `EMOM ${minutes} (odd/even)`,
-        // Keep your slim note wording
         note: `Alternate every minute between the two movements (odd then even) for the full duration.`,
         oddEven: {
-          // Keep your convention: odd = pull, even = push (we used pull-ish for odd above)
           odd:  { name: odd.name,  reps: repsOdd  },
           even: { name: even.name, reps: repsEven }
         },
@@ -228,9 +226,7 @@ export function generateLift({
     }
   }
 
-  // ======================================================================
-
-  // === Existing single-movement formats (unchanged) ======================
+  // === Existing single-movement formats ==================================
   const liftsForFocus = candidates.filter(m => (m.strainedMuscleGroups || []).includes(focusChoice) && avoidSore(m))
   const pool = (liftsForFocus.length ? liftsForFocus : candidates.filter(avoidSore))
   const chosen = (pool.length ? _pick(pool) : _pick(candidates))
@@ -238,12 +234,13 @@ export function generateLift({
 
   if (!chosen) {
     return {
-      focus: 'core',
+      focus: 'core' as MuscleGroup,
       move: 'Bodyweight Squat',
       scheme: `Every 2:00 for ${Math.max(3, Math.floor(minutes/2))} sets: 15 reps`,
       minutes, difficulty: 2,
       strained: new Set<MuscleGroup>(['core'] as MuscleGroup[]),
-      groups:   new Set<MuscleGroup>(['core'] as MuscleGroup[])
+      groups:   new Set<MuscleGroup>(['core'] as MuscleGroup[]),
+      note: 'Quality air squats; full depth; steady pace.'
     }
   }
 
@@ -477,8 +474,8 @@ export function buildPrep({
     strained: Set<MuscleGroup>;
     note?: string;
     oddEven?: { odd: { name: string; reps: number }, even: { name: string; reps: number } }
-  };
-  hiit: { format: string; minutes: number; blocks: string[]; groups: Set<MuscleGroup> };
+  } | null;
+  hiit: { format: string; minutes: number; blocks: string[]; groups: Set<MuscleGroup> } | null;
 }) {
   const primary = new Set<MuscleGroup>();
   const weighted = new Map<MuscleGroup, number>();
@@ -488,7 +485,7 @@ export function buildPrep({
     lift.strained.forEach((g) => weighted.set(g, Math.max(weighted.get(g) || 0, 2)));
     lift.groups.forEach((g) => primary.add(g));
     lift.strained.forEach((g) => primary.add(g));
-  } else {
+  } else if (hiit) {
     hiit.groups.forEach((g) => {
       primary.add(g);
       weighted.set(g, 1);

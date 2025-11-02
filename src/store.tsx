@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useMemo, useState } from 'react'
 import { ALL_EQUIPMENT, ALL_MUSCLE_GROUPS, type Equipment, type MuscleGroup } from './types/WodMovements'
-import { generateLift, generateHiit, buildPrep } from './whiteboard/generator'
+import { getGeneratorsForType, getEquipmentForType } from './workoutTypes/registry'
+import { useWorkoutType } from './workoutTypes/context'
 
 function today() {
     return new Date().toISOString().slice(0, 10)
@@ -17,6 +18,7 @@ type LiftT =
         odd: { name: string; reps: number }
         even: { name: string; reps: number }
     }
+    movements?: string[]
     minutes: number
     difficulty: number
     groups: Set<MuscleGroup>
@@ -69,12 +71,47 @@ type Ctx = {
 const BoardContext = createContext<Ctx | null>(null)
 
 export function BoardProvider({ children }: { children: React.ReactNode }) {
+    const { workoutType } = useWorkoutType()
+
+    // Generators are swapped per workout type
+    const gens = getGeneratorsForType(workoutType)
+    const generateLift = gens.generateLift
+    const generateHiit = gens.generateHiit
+    const buildPrep = gens.buildPrep
+
     const [date, setDate] = useState(today())
     const [split, setSplit] = useState(0.5) // default half / half
     const [workout, setWorkout] = useState(40) // default minutes, 20–60
 
     // Preselect all equipment on first load
     const [equipSel, setEquipSel] = useState<Equipment[]>(() => [...ALL_EQUIPMENT])
+
+    // ✅ Reset equipment WHEN workout type changes — single source of truth.
+    //    Honors sticky "Select all" (persisted by Controls in localStorage).
+    React.useEffect(() => {
+        const sticky = localStorage.getItem('equipAllSticky') === '1'
+
+        const typeList = getEquipmentForType(workoutType)
+        const allowed =
+            (workoutType === 'crossfit' || typeList.length === 0)
+                ? ALL_EQUIPMENT
+                : typeList
+
+        setEquipSel(prev => {
+            if (sticky) {
+                // “Select all” stays selected across type changes
+                return [...allowed]
+            }
+            // Keep current picks but clamp to what's allowed for this type
+            const allowedSet = new Set(allowed)
+            const filtered = prev.filter(e => allowedSet.has(e))
+            // If nothing survives, fall back to type defaults
+            return filtered.length > 0 ? filtered : [...allowed]
+        })
+
+        // Regenerate once for the new type
+        setTimeout(() => generateAll(), 0)
+    }, [workoutType]) // IMPORTANT: only depend on workoutType to avoid loops
 
     // ✅ Focus Areas: all muscle groups selected by default
     const [focusSel, setFocusSel] = useState<MuscleGroup[]>(() => [...ALL_MUSCLE_GROUPS])
