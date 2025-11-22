@@ -49,5 +49,5 @@ export function pickQuoteForGroups(rng:()=>number, groups: Set<MuscleGroup>){
   const tagged = LONG_QUOTES.filter(q => (q.tags||[]).some(t => groups.has(t)))
   const pool = tagged.length ? tagged : LONG_QUOTES
   const i = Math.floor(rng()*pool.length)
-  return pool[i].text
+  return pool[i]
 }
