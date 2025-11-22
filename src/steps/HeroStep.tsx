@@ -34,7 +34,7 @@ export function HeroStep({ workoutType, setWorkoutType }: Props) {
       backgroundAttachment: 'fixed',
       margin: '-20px -20px 0 -20px',
       padding: '40px 20px 20px 20px',
-      height: '100vh',
+      minHeight: 'calc(100vh - 60px)',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
