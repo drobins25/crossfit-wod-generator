@@ -28,7 +28,12 @@ export default function Board({ layout = 'grid' }: BoardProps) {
   const overlayActive = layout === 'grid' && (equipmentExpanded || focusExpanded)
 
   return (
-    <div style={{ padding: layout === 'stacked' ? 0 : 16, overflow: 'hidden', position: 'relative' }}>
+    <div style={{
+      padding: layout === 'stacked' ? 0 : 16,
+      overflow: 'hidden',
+      position: 'relative',
+      overscrollBehavior: 'none'
+    }}>
       {/* Overlay backdrop */}
       {overlayActive && (
         <div

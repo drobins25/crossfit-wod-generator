@@ -358,6 +358,8 @@ function WizardSteps() {
           padding: '40px 20px 40px 20px',
           minHeight: 'calc(100vh - 60px)',
           overflowX: 'hidden',
+          overscrollBehavior: 'none',
+          WebkitOverflowScrolling: 'auto',
         }}>
           {/* Back button */}
           <button
