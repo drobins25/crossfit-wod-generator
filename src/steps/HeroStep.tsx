@@ -52,13 +52,13 @@ export function HeroStep({ workoutType, setWorkoutType }: Props) {
         borderLeft: '1px solid rgba(255, 255, 255, 0.35)',
         boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.1), inset 0 1px 0 0 rgba(255, 255, 255, 0.25)',
         borderRadius: '16px',
-        padding: '48px 32px',
+        padding: '32px 24px',
         maxWidth: '600px',
         width: '100%',
         textAlign: 'center'
       }}>
         <h1 style={{
-          fontSize: '56px',
+          fontSize: 'clamp(36px, 10vw, 56px)',
           fontWeight: 900,
           margin: 0,
           lineHeight: 1.1,
@@ -75,7 +75,7 @@ export function HeroStep({ workoutType, setWorkoutType }: Props) {
         </h1>
 
         <p style={{
-          fontSize: '20px',
+          fontSize: 'clamp(16px, 4vw, 20px)',
           fontWeight: 600,
           margin: 0,
           lineHeight: 1.5,
@@ -95,7 +95,7 @@ export function HeroStep({ workoutType, setWorkoutType }: Props) {
         borderLeft: '1px solid rgba(255, 255, 255, 0.35)',
         boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.15), inset 0 1px 0 0 rgba(255, 255, 255, 0.25)',
         borderRadius: '12px',
-        padding: '20px 28px',
+        padding: '20px 24px',
         maxWidth: '600px',
         width: '100%',
         textAlign: 'center',
@@ -218,14 +218,16 @@ export function HeroStep({ workoutType, setWorkoutType }: Props) {
           background: 'linear-gradient(135deg, #3b82f6, #ef4444, #22c55e)',
           border: '2px solid rgba(255, 255, 255, 0.3)',
           borderRadius: '32px',
-          padding: '16px 48px',
+          padding: '16px 32px',
           fontSize: '18px',
           fontWeight: 700,
           cursor: 'pointer',
           transition: 'all 0.3s ease',
           color: 'white',
           boxShadow: '0 8px 24px rgba(0, 0, 0, 0.2)',
-          marginTop: '16px'
+          marginTop: '16px',
+          width: '100%',
+          maxWidth: '400px'
         }}
         onMouseEnter={(e) => {
           e.currentTarget.style.transform = 'scale(1.05)'

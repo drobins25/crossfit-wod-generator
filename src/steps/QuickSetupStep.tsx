@@ -234,7 +234,7 @@ export function QuickSetupStep({
 
       {/* Work Out! Button */}
       {onWorkOut && (
-        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '32px', marginBottom: '32px' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '32px', marginBottom: '32px', padding: '0 16px' }}>
           <button
             type="button"
             onClick={onWorkOut}
@@ -242,13 +242,15 @@ export function QuickSetupStep({
               background: 'linear-gradient(135deg, #3b82f6, #ef4444, #22c55e)',
               border: '2px solid rgba(255, 255, 255, 0.3)',
               borderRadius: '32px',
-              padding: '16px 48px',
+              padding: '16px 32px',
               fontSize: '18px',
               fontWeight: 700,
               cursor: 'pointer',
               transition: 'all 0.3s ease',
               color: 'white',
               boxShadow: '0 8px 24px rgba(0, 0, 0, 0.2)',
+              width: '100%',
+              maxWidth: '400px',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'scale(1.05)'
