@@ -137,6 +137,7 @@ export default function Board({ layout = 'grid' }: BoardProps) {
           </div>
 
           <div
+            data-collapsible="warmup"
             style={{
               display: 'grid',
               gridTemplateRows: warmupExpanded ? '1fr' : '0fr',
@@ -222,6 +223,7 @@ export default function Board({ layout = 'grid' }: BoardProps) {
           </div>
 
           <div
+            data-collapsible="cooldown"
             style={{
               display: 'grid',
               gridTemplateRows: cooldownExpanded ? '1fr' : '0fr',
@@ -250,27 +252,24 @@ export default function Board({ layout = 'grid' }: BoardProps) {
         <button
           onClick={() => exportBoardToPng(boardRef.current!, 'wod.png')}
           style={{
-            background: 'linear-gradient(135deg, rgba(var(--bg-rgb), 0.7), rgba(var(--bg-rgb), 0.5))',
-            backdropFilter: 'blur(20px) saturate(180%)',
-            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            borderTop: '1px solid rgba(255, 255, 255, 0.35)',
-            borderLeft: '1px solid rgba(255, 255, 255, 0.35)',
-            boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.1), inset 0 1px 0 0 rgba(255, 255, 255, 0.25)',
-            borderRadius: '12px',
-            padding: '16px 32px',
-            fontSize: '1rem',
-            fontWeight: 600,
+            background: 'linear-gradient(135deg, #3b82f6, #ef4444, #22c55e)',
+            border: '2px solid rgba(255, 255, 255, 0.3)',
+            borderRadius: '32px',
+            padding: '16px 48px',
+            fontSize: '18px',
+            fontWeight: 700,
             cursor: 'pointer',
-            transition: 'all 0.2s ease',
+            transition: 'all 0.3s ease',
+            color: 'white',
+            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.2)',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.transform = 'translateY(-2px)'
-            e.currentTarget.style.boxShadow = '0 12px 40px 0 rgba(0, 0, 0, 0.15), inset 0 1px 0 0 rgba(255, 255, 255, 0.25)'
+            e.currentTarget.style.transform = 'scale(1.05)'
+            e.currentTarget.style.boxShadow = '0 12px 32px rgba(0, 0, 0, 0.3)'
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)'
-            e.currentTarget.style.boxShadow = '0 8px 32px 0 rgba(0, 0, 0, 0.1), inset 0 1px 0 0 rgba(255, 255, 255, 0.25)'
+            e.currentTarget.style.transform = 'scale(1)'
+            e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.2)'
           }}
         >
           📥 Export WOD

@@ -96,9 +96,9 @@ const SESSION_LABELS: Record<
     WorkoutType,
     { typeLabel: string; liftLabel: string; hiitLabel: string }
 > = {
-  crossfit:   { typeLabel: 'CrossFit',   liftLabel: 'Lift',     hiitLabel: 'HIIT' },
-  totalGym:   { typeLabel: 'Total Gym',  liftLabel: 'Strength', hiitLabel: 'Intervals' },
-  'chair-yoga': { typeLabel: 'Chair Yoga', liftLabel: 'Mobility', hiitLabel: 'Flow' },
+  crossfit:   { typeLabel: '💪 CrossFit',   liftLabel: 'Lift',     hiitLabel: 'HIIT' },
+  totalGym:   { typeLabel: '🏋️ Total Gym',  liftLabel: 'Strength', hiitLabel: 'Intervals' },
+  'chair-yoga': { typeLabel: '🧘 Chair Yoga', liftLabel: 'Mobility', hiitLabel: 'Flow' },
 };
 
 export function getSessionLabels(type: WorkoutType) {

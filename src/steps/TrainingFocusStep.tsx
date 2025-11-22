@@ -8,9 +8,10 @@ interface Props {
   defaultCollapsed?: boolean
   onExpandChange?: (expanded: boolean) => void
   overlayMode?: boolean
+  hideTitle?: boolean
 }
 
-export function TrainingFocusStep({ focusSel, setFocusSel, collapsible = false, defaultCollapsed = false, onExpandChange, overlayMode = false }: Props) {
+export function TrainingFocusStep({ focusSel, setFocusSel, collapsible = false, defaultCollapsed = false, onExpandChange, overlayMode = false, hideTitle = false }: Props) {
   const [collapsed, setCollapsed] = React.useState(defaultCollapsed)
 
   const toggleCollapsed = () => {
@@ -87,7 +88,7 @@ export function TrainingFocusStep({ focusSel, setFocusSel, collapsible = false, 
     </div>
   ) : (
     <div className="segmented-wrap block-row">
-      <div className="segmented-title marker line center">Training Focus</div>
+      {!hideTitle && <div className="segmented-title marker line center">Training Focus</div>}
       <h3 style={{ fontSize: 'xx-small', textAlign: 'center' }}>
         Choose which muscle groups to target (checked) or avoid (unchecked).
       </h3>

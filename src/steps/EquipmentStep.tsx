@@ -8,9 +8,10 @@ interface Props {
   collapsible?: boolean
   onExpandChange?: (expanded: boolean) => void
   overlayMode?: boolean
+  hideTitle?: boolean
 }
 
-export function EquipmentStep({ allowedEquip, equipSel, setEquipSel, collapsible = false, onExpandChange, overlayMode = false }: Props) {
+export function EquipmentStep({ allowedEquip, equipSel, setEquipSel, collapsible = false, onExpandChange, overlayMode = false, hideTitle = false }: Props) {
   const [collapsed, setCollapsed] = React.useState(collapsible)
 
   const toggleCollapsed = () => {
@@ -104,7 +105,7 @@ export function EquipmentStep({ allowedEquip, equipSel, setEquipSel, collapsible
     </div>
   ) : (
     <div className="segmented-wrap block-row">
-      <div className="segmented-title marker line center">Equipment</div>
+      {!hideTitle && <div className="segmented-title marker line center">Equipment</div>}
       <h3 style={{ fontSize: 'xx-small', textAlign: 'center' }}>
         Select the gear you have available. We'll only use movements you can actually do.
       </h3>

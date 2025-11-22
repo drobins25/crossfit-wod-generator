@@ -1,25 +1,46 @@
-import React, { useMemo } from 'react'
-import { pickQuoteForGroups } from '../whiteboard/quotes'
+import React from 'react'
+import { WorkoutType } from '../workoutTypes/context'
+import { getWorkoutTypeOptions } from '../workoutTypes/registry'
 
-export function HeroStep() {
-  // Generate a random quote for the hero
-  const quote = useMemo(() => {
-    const rng = () => Math.random()
-    return pickQuoteForGroups(rng, new Set())
-  }, [])
+interface Props {
+  workoutType: WorkoutType
+  setWorkoutType: (type: WorkoutType) => void
+}
+
+export function HeroStep({ workoutType, setWorkoutType }: Props) {
+  // Hard-coded quote for consistent hero display
+  const quote = {
+    text: "Take care of your body. It's the only place you have to live.",
+    author: "Jim Rohn"
+  }
+
+  const scrollToQuickSetup = () => {
+    const quickSetup = document.getElementById('quick-setup')
+    if (quickSetup) {
+      const headerOffset = 60 // Height of sticky header
+      const elementPosition = quickSetup.getBoundingClientRect().top
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      })
+    }
+  }
 
   return (
     <div style={{
       background: 'linear-gradient(135deg, var(--panel), var(--panel-2))',
       backgroundAttachment: 'fixed',
-      margin: '0 -20px -20px -20px',
-      padding: '20px',
-      minHeight: '100vh',
+      margin: '-20px -20px 0 -20px',
+      padding: '40px 20px 20px 20px',
+      height: '100vh',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'flex-start',
-      gap: '24px'
+      gap: '24px',
+      boxSizing: 'border-box'
     }}>
       {/* Main Hero Card */}
       <div style={{
@@ -33,6 +54,7 @@ export function HeroStep() {
         borderRadius: '16px',
         padding: '48px 32px',
         maxWidth: '600px',
+        width: '100%',
         textAlign: 'center'
       }}>
         <h1 style={{
@@ -65,36 +87,75 @@ export function HeroStep() {
 
       {/* Quote Card */}
       <div style={{
-        background: 'linear-gradient(135deg, rgba(var(--bg-rgb), 0.7), rgba(var(--bg-rgb), 0.5))',
+        background: 'linear-gradient(135deg, rgba(var(--bg-rgb), 0.85), rgba(var(--bg-rgb), 0.7))',
         backdropFilter: 'blur(20px) saturate(180%)',
         WebkitBackdropFilter: 'blur(20px) saturate(180%)',
         border: '1px solid rgba(255, 255, 255, 0.2)',
         borderTop: '1px solid rgba(255, 255, 255, 0.35)',
         borderLeft: '1px solid rgba(255, 255, 255, 0.35)',
-        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.1), inset 0 1px 0 0 rgba(255, 255, 255, 0.25)',
+        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.15), inset 0 1px 0 0 rgba(255, 255, 255, 0.25)',
         borderRadius: '12px',
-        padding: '24px 32px',
-        maxWidth: '560px',
-        textAlign: 'center'
+        padding: '20px 28px',
+        maxWidth: '600px',
+        width: '100%',
+        textAlign: 'center',
+        position: 'relative'
       }}>
+        {/* Decorative quote mark */}
+        <div style={{
+          position: 'absolute',
+          top: '4px',
+          left: '12px',
+          fontSize: '48px',
+          fontWeight: 700,
+          opacity: 0.06,
+          lineHeight: 1,
+          fontFamily: 'Georgia, serif'
+        }}>
+          "
+        </div>
+
         <p style={{
           fontSize: '16px',
           fontStyle: 'italic',
+          fontWeight: 500,
           opacity: 0.95,
           margin: 0,
-          lineHeight: 1.7
+          lineHeight: 1.6,
+          letterSpacing: '0.01em',
+          position: 'relative',
+          zIndex: 1
         }}>
-          "{quote.text}"
+          {quote.text}
         </p>
         {quote.author && (
-          <p style={{
-            fontSize: '14px',
-            opacity: 0.7,
-            marginTop: '12px',
-            fontWeight: 500
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            marginTop: '12px'
           }}>
-            — {quote.author}
-          </p>
+            <div style={{
+              height: '1px',
+              width: '32px',
+              background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent)'
+            }} />
+            <p style={{
+              fontSize: '13px',
+              opacity: 0.7,
+              fontWeight: 600,
+              margin: 0,
+              letterSpacing: '0.05em'
+            }}>
+              {quote.author}
+            </p>
+            <div style={{
+              height: '1px',
+              width: '32px',
+              background: 'linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent)'
+            }} />
+          </div>
         )}
       </div>
 
@@ -106,21 +167,77 @@ export function HeroStep() {
         justifyContent: 'center',
         marginTop: '8px'
       }}>
-        {['💪 CrossFit', '🏋️ Total Gym', '🧘 Chair Yoga'].map((type, i) => (
-          <div key={i} style={{
-            background: 'rgba(var(--bg-rgb), 0.6)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
-            borderRadius: '24px',
-            padding: '8px 20px',
-            fontSize: '14px',
-            fontWeight: 600,
-            opacity: 0.9
-          }}>
-            {type}
-          </div>
-        ))}
+        {getWorkoutTypeOptions().map(({ id, label }) => {
+          const isActive = id === workoutType
+          return (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setWorkoutType(id)}
+              style={{
+                background: isActive
+                  ? 'linear-gradient(135deg, rgba(59, 130, 246, 0.5), rgba(239, 68, 68, 0.4), rgba(34, 197, 94, 0.4))'
+                  : 'rgba(var(--bg-rgb), 0.6)',
+                backdropFilter: 'blur(10px)',
+                border: isActive
+                  ? '2px solid rgba(255, 255, 255, 0.5)'
+                  : '1px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: '24px',
+                padding: '8px 20px',
+                fontSize: '14px',
+                fontWeight: 600,
+                opacity: isActive ? 1 : 0.9,
+                cursor: 'pointer',
+                transition: 'all 0.2s ease',
+                color: 'inherit'
+              }}
+              onMouseEnter={(e) => {
+                if (!isActive) {
+                  e.currentTarget.style.opacity = '1'
+                  e.currentTarget.style.transform = 'scale(1.05)'
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isActive) {
+                  e.currentTarget.style.opacity = '0.9'
+                  e.currentTarget.style.transform = 'scale(1)'
+                }
+              }}
+            >
+              {label}
+            </button>
+          )
+        })}
       </div>
+
+      {/* Let's Go! Button */}
+      <button
+        type="button"
+        onClick={scrollToQuickSetup}
+        style={{
+          background: 'linear-gradient(135deg, #3b82f6, #ef4444, #22c55e)',
+          border: '2px solid rgba(255, 255, 255, 0.3)',
+          borderRadius: '32px',
+          padding: '16px 48px',
+          fontSize: '18px',
+          fontWeight: 700,
+          cursor: 'pointer',
+          transition: 'all 0.3s ease',
+          color: 'white',
+          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.2)',
+          marginTop: '16px'
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'scale(1.05)'
+          e.currentTarget.style.boxShadow = '0 12px 32px rgba(0, 0, 0, 0.3)'
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'scale(1)'
+          e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.2)'
+        }}
+      >
+        Let's Go!
+      </button>
     </div>
   )
 }

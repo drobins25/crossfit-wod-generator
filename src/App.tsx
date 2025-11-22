@@ -18,16 +18,24 @@ export default function App() {
   })
 
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 1024)
+  const [wizardKey, setWizardKey] = useState(0)
 
   const wizardMode = manualWizardMode !== null ? manualWizardMode : isMobile
 
   useEffect(() => {
     const handleResize = () => {
-      setIsMobile(window.innerWidth < 1024)
+      const wasMobile = isMobile
+      const nowMobile = window.innerWidth < 1024
+      setIsMobile(nowMobile)
+
+      // Reset wizard when switching between mobile and desktop
+      if (wasMobile !== nowMobile) {
+        setWizardKey(prev => prev + 1)
+      }
     }
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
-  }, [])
+  }, [isMobile])
 
   useEffect(() => {
     document.body.classList.toggle('dark', dark)
@@ -58,8 +66,8 @@ export default function App() {
               <div className="layout-hero-board">
                 <div className="left-col" style={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
                   <div id="controls"></div>
-                  <section className="controls-wrap" style={{ padding: '0 20px 20px 20px', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-                    <WizardControls/>
+                  <section className="controls-wrap" style={{ padding: '0 20px 0 20px', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+                    <WizardControls key={wizardKey}/>
                   </section>
                 </div>
               </div>

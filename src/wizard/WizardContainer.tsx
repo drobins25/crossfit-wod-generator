@@ -177,12 +177,21 @@ function WizardContent({ children }: { children: ReactNode }) {
   )
 }
 
+function WizardFooter() {
+  const { currentStep } = useWizard()
+
+  // Hide footer on all steps (no longer needed with back button)
+  // Step 0-1: Combined Hero + Quick Setup
+  // Step 2: Workout board (has back button instead)
+  return null
+}
+
 export function WizardContainer({ children, totalSteps, onComplete }: WizardContainerProps) {
   return (
     <WizardProvider totalSteps={totalSteps} onComplete={onComplete}>
       <div className="wizard-container">
         <WizardContent>{children}</WizardContent>
-        <WizardNavigation />
+        <WizardFooter />
       </div>
     </WizardProvider>
   )
