@@ -34,13 +34,14 @@ export function HeroStep({ workoutType, setWorkoutType }: Props) {
       backgroundAttachment: 'fixed',
       margin: '-20px -20px 0 -20px',
       padding: '40px 20px 20px 20px',
-      minHeight: 'calc(100vh - 60px)',
+      height: 'calc(100vh - 60px)',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
-      justifyContent: 'flex-start',
-      gap: '24px',
-      boxSizing: 'border-box'
+      justifyContent: 'center',
+      gap: '20px',
+      boxSizing: 'border-box',
+      overflow: 'auto'
     }}>
       {/* Main Hero Card */}
       <div style={{
@@ -211,35 +212,42 @@ export function HeroStep({ workoutType, setWorkoutType }: Props) {
       </div>
 
       {/* Let's Go! Button */}
-      <button
-        type="button"
-        onClick={scrollToQuickSetup}
-        style={{
-          background: 'linear-gradient(135deg, #3b82f6, #ef4444, #22c55e)',
-          border: '2px solid rgba(255, 255, 255, 0.3)',
-          borderRadius: '32px',
-          padding: '16px 32px',
-          fontSize: '18px',
-          fontWeight: 700,
-          cursor: 'pointer',
-          transition: 'all 0.3s ease',
-          color: 'white',
-          boxShadow: '0 8px 24px rgba(0, 0, 0, 0.2)',
-          marginTop: '16px',
-          width: '100%',
-          maxWidth: '400px'
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'scale(1.05)'
-          e.currentTarget.style.boxShadow = '0 12px 32px rgba(0, 0, 0, 0.3)'
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'scale(1)'
-          e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.2)'
-        }}
-      >
-        Let's Go!
-      </button>
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        marginTop: '16px',
+        padding: '0 16px',
+        width: '100%'
+      }}>
+        <button
+          type="button"
+          onClick={scrollToQuickSetup}
+          style={{
+            background: 'linear-gradient(135deg, #3b82f6, #ef4444, #22c55e)',
+            border: '2px solid rgba(255, 255, 255, 0.3)',
+            borderRadius: '32px',
+            padding: '16px 32px',
+            fontSize: '18px',
+            fontWeight: 700,
+            cursor: 'pointer',
+            transition: 'all 0.3s ease',
+            color: 'white',
+            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.2)',
+            width: '100%',
+            maxWidth: '280px'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'scale(1.05)'
+            e.currentTarget.style.boxShadow = '0 12px 32px rgba(0, 0, 0, 0.3)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'scale(1)'
+            e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.2)'
+          }}
+        >
+          Let's Go!
+        </button>
+      </div>
     </div>
   )
 }

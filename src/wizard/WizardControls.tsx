@@ -132,7 +132,8 @@ function WizardSteps() {
             height: '100%',
             maxWidth: '600px',
             marginLeft: 'auto',
-            marginRight: 'auto'
+            marginRight: 'auto',
+            padding: '0 16px'
           }}>
             {/* Title */}
             <h2 style={{
@@ -176,7 +177,7 @@ function WizardSteps() {
                 background: 'linear-gradient(135deg, #3b82f6, #ef4444, #22c55e)',
                 border: '2px solid rgba(255, 255, 255, 0.3)',
                 borderRadius: '32px',
-                padding: '16px 48px',
+                padding: '16px 32px',
                 fontSize: '18px',
                 fontWeight: 700,
                 cursor: 'pointer',
@@ -184,6 +185,7 @@ function WizardSteps() {
                 color: 'white',
                 boxShadow: '0 8px 24px rgba(0, 0, 0, 0.2)',
                 width: '100%',
+                maxWidth: '280px',
                 flexShrink: 0,
               }}
               onMouseEnter={(e) => {
@@ -216,7 +218,8 @@ function WizardSteps() {
             height: '100%',
             maxWidth: '600px',
             marginLeft: 'auto',
-            marginRight: 'auto'
+            marginRight: 'auto',
+            padding: '0 16px'
           }}>
             {/* Title */}
             <h2 style={{
@@ -261,7 +264,7 @@ function WizardSteps() {
                 background: 'linear-gradient(135deg, #3b82f6, #ef4444, #22c55e)',
                 border: '2px solid rgba(255, 255, 255, 0.3)',
                 borderRadius: '32px',
-                padding: '16px 48px',
+                padding: '16px 32px',
                 fontSize: '18px',
                 fontWeight: 700,
                 cursor: 'pointer',
@@ -269,6 +272,7 @@ function WizardSteps() {
                 color: 'white',
                 boxShadow: '0 8px 24px rgba(0, 0, 0, 0.2)',
                 width: '100%',
+                maxWidth: '280px',
                 flexShrink: 0,
               }}
               onMouseEnter={(e) => {

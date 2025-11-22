@@ -49,8 +49,19 @@ export function QuickSetupStep({
       backgroundAttachment: 'fixed',
       margin: '-20px -20px -20px -20px',
       padding: '40px 20px 40px 20px',
-      minHeight: 'calc(100vh - 60px)' // Subtract header height to prevent over-scroll
+      height: 'calc(100vh - 60px)', // Subtract header height to prevent over-scroll
+      display: 'flex',
+      flexDirection: 'column'
     }}>
+      {/* Scrollable content area */}
+      <div style={{
+        flex: 1,
+        overflowY: 'auto',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        minHeight: 0
+      }}>
       {/* Workout Type */}
       <div
         className="lift-accent"
@@ -231,10 +242,17 @@ export function QuickSetupStep({
           <div style={{ fontSize: '12px', opacity: 0.7 }}>({equipSel.length} selected)</div>
         </button>
       </div>
+      </div>
 
-      {/* Work Out! Button */}
+      {/* Work Out! Button - Fixed at bottom */}
       {onWorkOut && (
-        <div style={{ display: 'flex', justifyContent: 'center', marginTop: '32px', marginBottom: '32px', padding: '0 16px' }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          marginTop: '20px',
+          padding: '0 16px',
+          flexShrink: 0
+        }}>
           <button
             type="button"
             onClick={onWorkOut}
@@ -250,7 +268,7 @@ export function QuickSetupStep({
               color: 'white',
               boxShadow: '0 8px 24px rgba(0, 0, 0, 0.2)',
               width: '100%',
-              maxWidth: '400px',
+              maxWidth: '280px',
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = 'scale(1.05)'
