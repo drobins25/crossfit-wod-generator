@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react'
+import React, { useEffect, useMemo, useRef } from 'react'
 import { useWorkoutType } from '../workoutTypes/context'
 import { getEquipmentForType, getSessionLabels } from '../workoutTypes/registry'
 import { useBoard } from '../store'
@@ -39,82 +39,77 @@ function WizardSteps() {
     return getEquipmentForType(workoutType)
   }, [workoutType])
 
-  // Scroll to Quick Setup section
-  const scrollToQuickSetup = () => {
-    const quickSetup = document.getElementById('quick-setup')
-    if (quickSetup) {
-      const headerOffset = 60 // Height of sticky header
-      const elementPosition = quickSetup.getBoundingClientRect().top
-      const offsetPosition = elementPosition + window.pageYOffset - headerOffset
-
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      })
-    }
-  }
+  // Save scroll position for step 1
+  const step1ScrollPosition = useRef<number>(0)
+  const previousStep = useRef<number>(currentStep)
 
   // Re-generate when inputs change
   useEffect(() => {
     generateAll()
   }, [date, equipSel, focusSel, workout, split])
 
-  // Auto-scroll when step changes
+  // Handle scroll position when step changes
   useEffect(() => {
-    if (currentStep === 1) {
-      // Scroll to Quick Setup
-      requestAnimationFrame(() => {
-        const quickSetup = document.getElementById('quick-setup')
-        if (quickSetup) {
-          const headerOffset = 60
-          const rect = quickSetup.getBoundingClientRect()
-          const scrollTop = window.pageYOffset || document.documentElement.scrollTop
-          const quickSetupTop = rect.top + scrollTop
-          window.scrollTo({ top: quickSetupTop - headerOffset, behavior: 'auto' })
-        }
-      })
-    } else if (currentStep === 4) {
-      // Scroll to top of page (workout board)
-      requestAnimationFrame(() => {
-        window.scrollTo({ top: 0, behavior: 'auto' })
-      })
+    const prev = previousStep.current
+
+    // Restore scroll position when returning to step 1 from steps 2 or 3
+    if (currentStep === 1 && (prev === 2 || prev === 3)) {
+      // Use a short timeout to ensure DOM is ready
+      setTimeout(() => {
+        window.scrollTo({ top: step1ScrollPosition.current, behavior: 'instant' })
+      }, 0)
+    } else if (currentStep !== 1) {
+      // Save scroll position when leaving step 1
+      if (prev === 1) {
+        step1ScrollPosition.current = window.scrollY || window.pageYOffset
+      }
+      // Scroll to top for other steps
+      window.scrollTo({ top: 0, behavior: 'auto' })
     }
+
+    // Update previous step for next time
+    previousStep.current = currentStep
   }, [currentStep])
 
   // Adjust container width based on step
-  // Hero step can be wider, form steps at 800px, results at 900px
-  const isResultsStep = currentStep === 4
-  const isHeroStep = currentStep === 0
-  const containerStyle = isResultsStep
-    ? { maxWidth: 900, margin: '0 auto' }
-    : isHeroStep
-    ? { maxWidth: 1000, margin: '0 auto' }
-    : { maxWidth: 800, margin: '0 auto' }
+  const getContainerStyle = () => {
+    if (currentStep === 0) return { maxWidth: 1000, margin: '0 auto' } // Hero
+    if (currentStep === 4) return { maxWidth: 900, margin: '0 auto' } // Results
+    return { maxWidth: 800, margin: '0 auto' } // Quick Setup & Modal steps
+  }
+  const containerStyle = getContainerStyle()
 
   return (
     <div style={containerStyle}>
-      {/* Combined Hero + Quick Setup (Steps 0-1) */}
-      {(currentStep === 0 || currentStep === 1) && (
-        <>
-          <HeroStep workoutType={workoutType} setWorkoutType={setWorkoutType} />
-          <QuickSetupStep
-            workoutType={workoutType}
-            setWorkoutType={setWorkoutType}
-            workout={workout}
-            setWorkout={setWorkout}
-            split={split}
-            setSplit={setSplit}
-            liftLabel={labels.liftLabel}
-            hiitLabel={labels.hiitLabel}
-            liftMinutes={lift?.minutes}
-            hiitMinutes={hiit?.minutes}
-            focusSel={focusSel}
-            equipSel={equipSel}
-            onOpenFocusModal={() => goToStep(2)}
-            onOpenEquipmentModal={() => goToStep(3)}
-            onWorkOut={() => goToStep(4)}
-          />
-        </>
+      {/* Hero (Step 0) */}
+      {currentStep === 0 && (
+        <HeroStep
+          workoutType={workoutType}
+          setWorkoutType={setWorkoutType}
+          onNext={() => goToStep(1)}
+        />
+      )}
+
+      {/* Quick Setup (Step 1) */}
+      {currentStep === 1 && (
+        <QuickSetupStep
+          workoutType={workoutType}
+          setWorkoutType={setWorkoutType}
+          workout={workout}
+          setWorkout={setWorkout}
+          split={split}
+          setSplit={setSplit}
+          liftLabel={labels.liftLabel}
+          hiitLabel={labels.hiitLabel}
+          liftMinutes={lift?.minutes}
+          hiitMinutes={hiit?.minutes}
+          focusSel={focusSel}
+          equipSel={equipSel}
+          onOpenFocusModal={() => goToStep(2)}
+          onOpenEquipmentModal={() => goToStep(3)}
+          onWorkOut={() => goToStep(4)}
+          onBack={() => goToStep(0)}
+        />
       )}
 
       {/* Training Focus (Step 2) */}
@@ -125,6 +120,7 @@ function WizardSteps() {
           margin: '-20px -20px -20px -20px',
           padding: '40px 20px 40px 20px',
           height: 'calc(100vh - 60px)',
+          overflowX: 'hidden',
         }}>
           <div style={{
             display: 'flex',
@@ -170,35 +166,40 @@ function WizardSteps() {
             </div>
 
             {/* Done Button */}
-            <button
-              type="button"
-              onClick={() => goToStep(1)}
-              style={{
-                background: 'linear-gradient(135deg, #3b82f6, #ef4444, #22c55e)',
-                border: '2px solid rgba(255, 255, 255, 0.3)',
-                borderRadius: '32px',
-                padding: '16px 32px',
-                fontSize: '18px',
-                fontWeight: 700,
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                color: 'white',
-                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.2)',
-                width: '100%',
-                maxWidth: '280px',
-                flexShrink: 0,
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'scale(1.02)'
-                e.currentTarget.style.boxShadow = '0 12px 32px rgba(0, 0, 0, 0.3)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'scale(1)'
-                e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.2)'
-              }}
-            >
-              Done
-            </button>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}>
+              <button
+                type="button"
+                onClick={() => goToStep(1)}
+                style={{
+                  background: 'linear-gradient(135deg, #3b82f6, #ef4444, #22c55e)',
+                  border: '2px solid rgba(255, 255, 255, 0.3)',
+                  borderRadius: '32px',
+                  padding: '16px 32px',
+                  fontSize: '18px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  color: 'white',
+                  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.2)',
+                  width: '100%',
+                  maxWidth: '280px',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.02)'
+                  e.currentTarget.style.boxShadow = '0 12px 32px rgba(0, 0, 0, 0.3)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)'
+                  e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.2)'
+                }}
+              >
+                Done
+              </button>
+            </div>
           </div>
         </div>
       </WizardStep>
@@ -211,6 +212,7 @@ function WizardSteps() {
           margin: '-20px -20px -20px -20px',
           padding: '40px 20px 40px 20px',
           height: 'calc(100vh - 60px)',
+          overflowX: 'hidden',
         }}>
           <div style={{
             display: 'flex',
@@ -257,35 +259,40 @@ function WizardSteps() {
             </div>
 
             {/* Done Button */}
-            <button
-              type="button"
-              onClick={() => goToStep(1)}
-              style={{
-                background: 'linear-gradient(135deg, #3b82f6, #ef4444, #22c55e)',
-                border: '2px solid rgba(255, 255, 255, 0.3)',
-                borderRadius: '32px',
-                padding: '16px 32px',
-                fontSize: '18px',
-                fontWeight: 700,
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                color: 'white',
-                boxShadow: '0 8px 24px rgba(0, 0, 0, 0.2)',
-                width: '100%',
-                maxWidth: '280px',
-                flexShrink: 0,
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'scale(1.02)'
-                e.currentTarget.style.boxShadow = '0 12px 32px rgba(0, 0, 0, 0.3)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'scale(1)'
-                e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.2)'
-              }}
-            >
-              Done
-            </button>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'center',
+              flexShrink: 0,
+            }}>
+              <button
+                type="button"
+                onClick={() => goToStep(1)}
+                style={{
+                  background: 'linear-gradient(135deg, #3b82f6, #ef4444, #22c55e)',
+                  border: '2px solid rgba(255, 255, 255, 0.3)',
+                  borderRadius: '32px',
+                  padding: '16px 32px',
+                  fontSize: '18px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  transition: 'all 0.3s ease',
+                  color: 'white',
+                  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.2)',
+                  width: '100%',
+                  maxWidth: '280px',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'scale(1.02)'
+                  e.currentTarget.style.boxShadow = '0 12px 32px rgba(0, 0, 0, 0.3)'
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'scale(1)'
+                  e.currentTarget.style.boxShadow = '0 8px 24px rgba(0, 0, 0, 0.2)'
+                }}
+              >
+                Done
+              </button>
+            </div>
           </div>
         </div>
       </WizardStep>
@@ -297,7 +304,8 @@ function WizardSteps() {
           backgroundAttachment: 'fixed',
           margin: '-20px -20px 0 -20px',
           padding: '40px 20px 20px 20px',
-          minHeight: 'calc(100vh - 60px)'
+          minHeight: 'calc(100vh - 60px)',
+          overflowX: 'hidden',
         }}>
           {/* Back button */}
           <button

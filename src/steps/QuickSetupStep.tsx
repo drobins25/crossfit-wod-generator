@@ -21,6 +21,7 @@ interface Props {
   equipSel?: Equipment[]
   onOpenFocusModal?: () => void
   onOpenEquipmentModal?: () => void
+  onBack?: () => void
 }
 
 export function QuickSetupStep({
@@ -39,6 +40,7 @@ export function QuickSetupStep({
   equipSel = [],
   onOpenFocusModal,
   onOpenEquipmentModal,
+  onBack,
 }: Props) {
   const liftPct = split !== undefined ? Math.round(split * 100) : 50
   const sliderStyle: CSSVars = { ['--pct']: `${liftPct}%` }
@@ -49,19 +51,43 @@ export function QuickSetupStep({
       backgroundAttachment: 'fixed',
       margin: '-20px -20px -20px -20px',
       padding: '40px 20px 40px 20px',
-      height: 'calc(100vh - 60px)', // Subtract header height to prevent over-scroll
-      display: 'flex',
-      flexDirection: 'column'
+      minHeight: 'calc(100vh - 60px)',
+      overflowX: 'hidden',
     }}>
-      {/* Scrollable content area */}
-      <div style={{
-        flex: 1,
-        overflowY: 'auto',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        minHeight: 0
-      }}>
+      {/* Back button */}
+      {onBack && (
+        <button
+          type="button"
+          onClick={onBack}
+          style={{
+            background: 'rgba(var(--bg-rgb), 0.6)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            borderRadius: '8px',
+            padding: '8px 16px',
+            color: 'var(--text)',
+            fontSize: '14px',
+            fontWeight: 500,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            marginBottom: '20px',
+            transition: 'all 0.2s',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'rgba(var(--bg-rgb), 0.8)'
+            e.currentTarget.style.transform = 'translateX(-2px)'
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'rgba(var(--bg-rgb), 0.6)'
+            e.currentTarget.style.transform = 'translateX(0)'
+          }}
+        >
+          <span>←</span>
+          <span>Back</span>
+        </button>
+      )}
+
       {/* Workout Type */}
       <div
         className="lift-accent"
@@ -242,16 +268,13 @@ export function QuickSetupStep({
           <div style={{ fontSize: '12px', opacity: 0.7 }}>({equipSel.length} selected)</div>
         </button>
       </div>
-      </div>
 
-      {/* Work Out! Button - Fixed at bottom */}
+      {/* Work Out! Button */}
       {onWorkOut && (
         <div style={{
           display: 'flex',
           justifyContent: 'center',
-          marginTop: '20px',
-          padding: '0 16px',
-          flexShrink: 0
+          marginTop: '24px',
         }}>
           <button
             type="button"

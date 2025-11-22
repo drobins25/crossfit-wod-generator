@@ -5,27 +5,14 @@ import { getWorkoutTypeOptions } from '../workoutTypes/registry'
 interface Props {
   workoutType: WorkoutType
   setWorkoutType: (type: WorkoutType) => void
+  onNext?: () => void
 }
 
-export function HeroStep({ workoutType, setWorkoutType }: Props) {
+export function HeroStep({ workoutType, setWorkoutType, onNext }: Props) {
   // Hard-coded quote for consistent hero display
   const quote = {
     text: "Take care of your body. It's the only place you have to live.",
     author: "Jim Rohn"
-  }
-
-  const scrollToQuickSetup = () => {
-    const quickSetup = document.getElementById('quick-setup')
-    if (quickSetup) {
-      const headerOffset = 60 // Height of sticky header
-      const elementPosition = quickSetup.getBoundingClientRect().top
-      const offsetPosition = elementPosition + window.pageYOffset - headerOffset
-
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      })
-    }
   }
 
   return (
@@ -41,7 +28,8 @@ export function HeroStep({ workoutType, setWorkoutType }: Props) {
       justifyContent: 'center',
       gap: '20px',
       boxSizing: 'border-box',
-      overflow: 'auto'
+      overflow: 'auto',
+      overflowX: 'hidden',
     }}>
       {/* Main Hero Card */}
       <div style={{
@@ -221,7 +209,7 @@ export function HeroStep({ workoutType, setWorkoutType }: Props) {
       }}>
         <button
           type="button"
-          onClick={scrollToQuickSetup}
+          onClick={onNext}
           style={{
             background: 'linear-gradient(135deg, #3b82f6, #ef4444, #22c55e)',
             border: '2px solid rgba(255, 255, 255, 0.3)',
