@@ -123,7 +123,7 @@ export default function Board({ layout = 'grid' }: BoardProps) {
                 alignItems: 'center',
               }}
             >
-              <span>🟢 Warm-up 🟢</span>
+              <span>🟢 Warm-up</span>
               <span
                 style={{
                   fontSize: '16px',
@@ -141,10 +141,14 @@ export default function Board({ layout = 'grid' }: BoardProps) {
             style={{
               display: 'grid',
               gridTemplateRows: warmupExpanded ? '1fr' : '0fr',
-              transition: 'grid-template-rows 0.25s ease-out',
+              transition: 'grid-template-rows 0.3s ease-out',
             }}
           >
-            <div style={{ overflow: 'hidden' }}>
+            <div style={{
+              overflow: 'hidden',
+              opacity: warmupExpanded ? 1 : 0,
+              transition: 'opacity 0.3s ease-out',
+            }}>
               {warm ? (
                 warm.map((w, i) => (
                   <div key={i} className="marker line list animate">
@@ -209,7 +213,7 @@ export default function Board({ layout = 'grid' }: BoardProps) {
                 alignItems: 'center',
               }}
             >
-              <span>🔵 Cool-down 🔵</span>
+              <span>🔵 Cool-down</span>
               <span
                 style={{
                   fontSize: '16px',
@@ -227,10 +231,14 @@ export default function Board({ layout = 'grid' }: BoardProps) {
             style={{
               display: 'grid',
               gridTemplateRows: cooldownExpanded ? '1fr' : '0fr',
-              transition: 'grid-template-rows 0.25s ease-out',
+              transition: 'grid-template-rows 0.3s ease-out',
             }}
           >
-            <div style={{ overflow: 'hidden' }}>
+            <div style={{
+              overflow: 'hidden',
+              opacity: cooldownExpanded ? 1 : 0,
+              transition: 'opacity 0.3s ease-out',
+            }}>
               {cool ? (
                 cool.map((c, i) => (
                   <div key={i} className="marker line list animate">

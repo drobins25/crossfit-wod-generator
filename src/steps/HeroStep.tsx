@@ -19,9 +19,9 @@ export function HeroStep({ workoutType, setWorkoutType, onNext }: Props) {
     <div style={{
       background: 'linear-gradient(135deg, var(--panel), var(--panel-2))',
       backgroundAttachment: 'fixed',
-      margin: '-20px -20px 0 -20px',
-      padding: '20px 20px 20px 20px',
-      minHeight: 'calc(100vh - 60px)',
+      margin: '-20px -20px -20px -20px',
+      padding: '20px',
+      flex: 1,
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
@@ -44,7 +44,8 @@ export function HeroStep({ workoutType, setWorkoutType, onNext }: Props) {
         padding: '32px 24px',
         maxWidth: '600px',
         width: '100%',
-        textAlign: 'center'
+        textAlign: 'center',
+        marginTop: '20px'
       }}>
         <h1 style={{
           fontSize: 'clamp(36px, 10vw, 56px)',

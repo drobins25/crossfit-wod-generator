@@ -699,8 +699,9 @@ a.link-plain:hover { opacity: 1; }
 
 .wizard-content {
   flex: 1;
-  margin-bottom: 16px;
   touch-action: pan-y; /* Allow vertical scrolling but capture horizontal drags */
+  display: flex;
+  flex-direction: column;
 }
 
 /* Allow interactive elements to work normally inside draggable content */

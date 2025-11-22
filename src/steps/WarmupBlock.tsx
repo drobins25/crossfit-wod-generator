@@ -8,7 +8,7 @@ export function WarmupBlock({ warm }: Props) {
   return (
     <section className="mini-board warmup-accent">
       <div className="board-head">
-        <div className="marker head green">🟢 Warm-up 🟢</div>
+        <div className="marker head green">🟢 Warm-up</div>
       </div>
       {warm ? (
         warm.map((w, i) => (

@@ -73,7 +73,7 @@ function WizardSteps() {
 
   // Adjust container width based on step
   const getContainerStyle = () => {
-    if (currentStep === 0) return { maxWidth: 1000, margin: '0 auto' } // Hero
+    if (currentStep === 0) return { maxWidth: 1000, margin: '0 auto', flex: 1, display: 'flex', flexDirection: 'column' as const } // Hero
     if (currentStep === 4) return { maxWidth: 900, margin: '0 auto' } // Results
     return { maxWidth: 800, margin: '0 auto' } // Quick Setup & Modal steps
   }
@@ -354,8 +354,8 @@ function WizardSteps() {
         <div style={{
           background: 'linear-gradient(135deg, var(--panel), var(--panel-2))',
           backgroundAttachment: 'fixed',
-          margin: '-20px -20px 0 -20px',
-          padding: '40px 20px 20px 20px',
+          margin: '-20px -20px -20px -20px',
+          padding: '40px 20px 40px 20px',
           minHeight: 'calc(100vh - 60px)',
           overflowX: 'hidden',
         }}>
