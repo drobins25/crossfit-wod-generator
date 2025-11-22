@@ -30,6 +30,7 @@ export function HeroStep({ workoutType, setWorkoutType, onNext }: Props) {
       boxSizing: 'border-box',
       overflow: 'auto',
       overflowX: 'hidden',
+      minHeight: 0,
     }}>
       {/* Main Hero Card */}
       <div style={{
