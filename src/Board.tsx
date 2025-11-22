@@ -263,7 +263,7 @@ export default function Board({ layout = 'grid' }: BoardProps) {
             color: 'white',
             boxShadow: '0 8px 24px rgba(0, 0, 0, 0.2)',
             width: '100%',
-            maxWidth: '400px',
+            maxWidth: '280px',
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.transform = 'scale(1.05)'

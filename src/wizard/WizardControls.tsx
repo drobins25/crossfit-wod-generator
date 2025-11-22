@@ -58,12 +58,12 @@ function WizardSteps() {
       setTimeout(() => {
         window.scrollTo({ top: step1ScrollPosition.current, behavior: 'instant' })
       }, 0)
-    } else if (currentStep !== 1) {
+    } else {
       // Save scroll position when leaving step 1
-      if (prev === 1) {
+      if (prev === 1 && (currentStep === 2 || currentStep === 3)) {
         step1ScrollPosition.current = window.scrollY || window.pageYOffset
       }
-      // Scroll to top for other steps
+      // Scroll to top for all other step transitions
       window.scrollTo({ top: 0, behavior: 'auto' })
     }
 
@@ -119,18 +119,47 @@ function WizardSteps() {
           backgroundAttachment: 'fixed',
           margin: '-20px -20px -20px -20px',
           padding: '40px 20px 40px 20px',
-          height: 'calc(100vh - 60px)',
+          minHeight: 'calc(100vh - 60px)',
           overflowX: 'hidden',
         }}>
           <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            height: '100%',
             maxWidth: '600px',
             marginLeft: 'auto',
             marginRight: 'auto',
             padding: '0 16px'
           }}>
+            {/* Back button */}
+            <button
+              type="button"
+              onClick={() => goToStep(1)}
+              style={{
+                background: 'rgba(var(--bg-rgb), 0.6)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: '8px',
+                padding: '8px 16px',
+                color: 'var(--text)',
+                fontSize: '14px',
+                fontWeight: 500,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                marginBottom: '20px',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(var(--bg-rgb), 0.8)'
+                e.currentTarget.style.transform = 'translateX(-2px)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(var(--bg-rgb), 0.6)'
+                e.currentTarget.style.transform = 'translateX(0)'
+              }}
+            >
+              <span>←</span>
+              <span>Back</span>
+            </button>
+
             {/* Title */}
             <h2 style={{
               fontSize: '24px',
@@ -138,12 +167,11 @@ function WizardSteps() {
               margin: 0,
               marginBottom: '20px',
               textAlign: 'center',
-              flexShrink: 0,
             }}>
               Training Focus
             </h2>
 
-            {/* Training Focus Selection - Scrollable */}
+            {/* Training Focus Selection */}
             <div style={{
               background: 'rgba(var(--bg-rgb), 0.5)',
               backdropFilter: 'blur(10px)',
@@ -153,8 +181,6 @@ function WizardSteps() {
               borderTop: '1px solid rgba(255, 255, 255, 0.35)',
               borderLeft: '1px solid rgba(255, 255, 255, 0.35)',
               boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.1), inset 0 1px 0 0 rgba(255, 255, 255, 0.25)',
-              flex: 1,
-              overflowY: 'auto',
               marginBottom: '20px',
             }}>
               <TrainingFocusStep
@@ -169,7 +195,7 @@ function WizardSteps() {
             <div style={{
               display: 'flex',
               justifyContent: 'center',
-              flexShrink: 0,
+              marginBottom: '20px',
             }}>
               <button
                 type="button"
@@ -211,18 +237,47 @@ function WizardSteps() {
           backgroundAttachment: 'fixed',
           margin: '-20px -20px -20px -20px',
           padding: '40px 20px 40px 20px',
-          height: 'calc(100vh - 60px)',
+          minHeight: 'calc(100vh - 60px)',
           overflowX: 'hidden',
         }}>
           <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            height: '100%',
             maxWidth: '600px',
             marginLeft: 'auto',
             marginRight: 'auto',
             padding: '0 16px'
           }}>
+            {/* Back button */}
+            <button
+              type="button"
+              onClick={() => goToStep(1)}
+              style={{
+                background: 'rgba(var(--bg-rgb), 0.6)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                borderRadius: '8px',
+                padding: '8px 16px',
+                color: 'var(--text)',
+                fontSize: '14px',
+                fontWeight: 500,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                marginBottom: '20px',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(var(--bg-rgb), 0.8)'
+                e.currentTarget.style.transform = 'translateX(-2px)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(var(--bg-rgb), 0.6)'
+                e.currentTarget.style.transform = 'translateX(0)'
+              }}
+            >
+              <span>←</span>
+              <span>Back</span>
+            </button>
+
             {/* Title */}
             <h2 style={{
               fontSize: '24px',
@@ -230,12 +285,11 @@ function WizardSteps() {
               margin: 0,
               marginBottom: '20px',
               textAlign: 'center',
-              flexShrink: 0,
             }}>
               Equipment
             </h2>
 
-            {/* Equipment Selection - Scrollable */}
+            {/* Equipment Selection */}
             <div style={{
               background: 'rgba(var(--bg-rgb), 0.5)',
               backdropFilter: 'blur(10px)',
@@ -245,8 +299,6 @@ function WizardSteps() {
               borderTop: '1px solid rgba(255, 255, 255, 0.35)',
               borderLeft: '1px solid rgba(255, 255, 255, 0.35)',
               boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.1), inset 0 1px 0 0 rgba(255, 255, 255, 0.25)',
-              flex: 1,
-              overflowY: 'auto',
               marginBottom: '20px',
             }}>
               <EquipmentStep
@@ -262,7 +314,7 @@ function WizardSteps() {
             <div style={{
               display: 'flex',
               justifyContent: 'center',
-              flexShrink: 0,
+              marginBottom: '20px',
             }}>
               <button
                 type="button"
